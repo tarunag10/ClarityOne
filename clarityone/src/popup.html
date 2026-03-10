@@ -33,6 +33,16 @@
       </label>
 
       <label class="stack">
+        <span>Color-blind assist</span>
+        <select id="colorBlindMode" aria-label="Color-blind assist mode">
+          <option value="none">None</option>
+          <option value="deuteranopia">Deuteranopia assist</option>
+          <option value="protanopia">Protanopia assist</option>
+          <option value="tritanopia">Tritanopia assist</option>
+        </select>
+      </label>
+
+      <label class="stack">
         <span>Font scale</span>
         <input id="fontScale" type="range" min="1" max="2" step="0.1" aria-label="Font scale" aria-valuemin="1" aria-valuemax="2" aria-valuenow="1.2" />
         <output id="fontScaleValue" aria-live="polite">1.2x</output>
@@ -44,14 +54,42 @@
         <output id="lineHeightValue" aria-live="polite">1.7</output>
       </label>
 
+      <label class="stack">
+        <span>Letter spacing</span>
+        <input id="letterSpacing" type="range" min="0" max="0.2" step="0.01" aria-label="Letter spacing" aria-valuemin="0" aria-valuemax="0.2" aria-valuenow="0.02" />
+        <output id="letterSpacingValue" aria-live="polite">0.02em</output>
+      </label>
+
+      <label class="stack">
+        <span>Word spacing</span>
+        <input id="wordSpacing" type="range" min="0" max="0.4" step="0.01" aria-label="Word spacing" aria-valuemin="0" aria-valuemax="0.4" aria-valuenow="0.05" />
+        <output id="wordSpacingValue" aria-live="polite">0.05em</output>
+      </label>
+
+      <label class="stack">
+        <span>Paragraph spacing</span>
+        <input id="paragraphSpacing" type="range" min="0.8" max="2.4" step="0.1" aria-label="Paragraph spacing" aria-valuemin="0.8" aria-valuemax="2.4" aria-valuenow="1.2" />
+        <output id="paragraphSpacingValue" aria-live="polite">1.2em</output>
+      </label>
+
       <label class="row toggle-row">
         <span>Readable font</span>
         <input id="readableFont" type="checkbox" aria-label="Readable font" />
       </label>
 
       <label class="row toggle-row">
+        <span>Dyslexia-friendly font</span>
+        <input id="dyslexiaFont" type="checkbox" aria-label="Dyslexia-friendly font" />
+      </label>
+
+      <label class="row toggle-row">
         <span>Enhanced focus</span>
         <input id="enhancedFocus" type="checkbox" aria-label="Enhanced focus" />
+      </label>
+
+      <label class="row toggle-row">
+        <span>Reading mode</span>
+        <input id="readingMode" type="checkbox" aria-label="Reading mode" />
       </label>
 
       <button id="resetButton" type="button" aria-label="Reset all settings to defaults">Reset to defaults</button>

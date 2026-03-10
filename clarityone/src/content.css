@@ -4,6 +4,31 @@ html.clarityone-enabled body {
   line-height: var(--clarityone-line-height, 1.7) !important;
 }
 
+html.clarityone-enabled body,
+html.clarityone-enabled p,
+html.clarityone-enabled li,
+html.clarityone-enabled a,
+html.clarityone-enabled label,
+html.clarityone-enabled input,
+html.clarityone-enabled textarea,
+html.clarityone-enabled select,
+html.clarityone-enabled button,
+html.clarityone-enabled td,
+html.clarityone-enabled th,
+html.clarityone-enabled span,
+html.clarityone-enabled div {
+  letter-spacing: var(--clarityone-letter-spacing, 0.02em) !important;
+  word-spacing: var(--clarityone-word-spacing, 0.05em) !important;
+}
+
+html.clarityone-enabled p,
+html.clarityone-enabled li,
+html.clarityone-enabled blockquote,
+html.clarityone-enabled article p,
+html.clarityone-enabled section p {
+  margin-bottom: var(--clarityone-paragraph-spacing, 1.2em) !important;
+}
+
 html.clarityone-enabled *:focus {
   outline: var(--clarityone-focus-outline, 3px solid #ff9900) !important;
   outline-offset: 2px !important;
@@ -119,6 +144,36 @@ html.clarityone-enabled.clarityone-contrast-invert canvas,
 html.clarityone-enabled.clarityone-contrast-invert svg,
 html.clarityone-enabled.clarityone-contrast-invert iframe {
   filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Color-blind assist presets */
+html.clarityone-enabled.clarityone-cb-deuteranopia body {
+  filter: saturate(1.15) hue-rotate(-12deg) contrast(1.08) !important;
+}
+html.clarityone-enabled.clarityone-cb-protanopia body {
+  filter: saturate(1.25) hue-rotate(8deg) contrast(1.1) !important;
+}
+html.clarityone-enabled.clarityone-cb-tritanopia body {
+  filter: saturate(1.2) hue-rotate(-28deg) contrast(1.08) !important;
+}
+
+/* Reading mode */
+html.clarityone-enabled.clarityone-reading-mode body {
+  background: #f5f2e9 !important;
+}
+html.clarityone-enabled .clarityone-reading-target {
+  max-width: 72ch !important;
+  margin: 24px auto !important;
+  padding: 20px !important;
+  background: #fffdf7 !important;
+  color: #1a1a1a !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
+}
+html.clarityone-enabled.clarityone-reading-mode body > *:not(.clarityone-reading-target):not(#clarityone-skip-link) {
+  opacity: 0.14 !important;
+  pointer-events: none !important;
+  user-select: none !important;
 }
 
 html.clarityone-enabled a {

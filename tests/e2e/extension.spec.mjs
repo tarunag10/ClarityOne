@@ -49,10 +49,16 @@ test('loads and shows controls', async () => {
   await expect(popup.locator('h1')).toHaveText('ClarityOne');
   await expect(popup.locator('#enabled')).toBeVisible();
   await expect(popup.locator('#contrastMode')).toBeVisible();
+  await expect(popup.locator('#colorBlindMode')).toBeVisible();
   await expect(popup.locator('#fontScale')).toBeVisible();
   await expect(popup.locator('#lineHeight')).toBeVisible();
+  await expect(popup.locator('#letterSpacing')).toBeVisible();
+  await expect(popup.locator('#wordSpacing')).toBeVisible();
+  await expect(popup.locator('#paragraphSpacing')).toBeVisible();
   await expect(popup.locator('#readableFont')).toBeVisible();
+  await expect(popup.locator('#dyslexiaFont')).toBeVisible();
   await expect(popup.locator('#enhancedFocus')).toBeVisible();
+  await expect(popup.locator('#readingMode')).toBeVisible();
   await expect(popup.locator('#resetButton')).toBeVisible();
   await popup.close();
 });

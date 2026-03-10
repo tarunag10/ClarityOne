@@ -1,10 +1,16 @@
 const DEFAULT_SETTINGS = {
   enabled: false,
   contrastMode: 'light',
+  colorBlindMode: 'none',
   fontScale: 1.2,
   readableFont: true,
+  dyslexiaFont: false,
   enhancedFocus: true,
   lineHeight: 1.7,
+  letterSpacing: 0.02,
+  wordSpacing: 0.05,
+  paragraphSpacing: 1.2,
+  readingMode: false,
   siteOverrides: {}
 };
 
