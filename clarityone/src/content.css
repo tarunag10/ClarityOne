@@ -4,22 +4,6 @@ html.clarityone-enabled body {
   line-height: var(--clarityone-line-height, 1.7) !important;
 }
 
-html.clarityone-enabled body,
-html.clarityone-enabled p,
-html.clarityone-enabled li,
-html.clarityone-enabled a,
-html.clarityone-enabled label,
-html.clarityone-enabled input,
-html.clarityone-enabled textarea,
-html.clarityone-enabled select,
-html.clarityone-enabled button,
-html.clarityone-enabled td,
-html.clarityone-enabled th,
-html.clarityone-enabled span,
-html.clarityone-enabled div {
-  font-size: calc(1rem * var(--clarityone-font-scale, 1.2)) !important;
-}
-
 html.clarityone-enabled *:focus {
   outline: var(--clarityone-focus-outline, 3px solid #ff9900) !important;
   outline-offset: 2px !important;
@@ -122,6 +106,19 @@ html.clarityone-enabled.clarityone-contrast-yellow td {
   border: 1px solid #ffff00 !important;
   color: #ffff00 !important;
   background: #1a1a00 !important;
+}
+
+/* Invert contrast theme */
+html.clarityone-enabled.clarityone-contrast-invert {
+  filter: invert(1) hue-rotate(180deg) !important;
+  background: #ffffff !important;
+}
+html.clarityone-enabled.clarityone-contrast-invert img,
+html.clarityone-enabled.clarityone-contrast-invert video,
+html.clarityone-enabled.clarityone-contrast-invert canvas,
+html.clarityone-enabled.clarityone-contrast-invert svg,
+html.clarityone-enabled.clarityone-contrast-invert iframe {
+  filter: invert(1) hue-rotate(180deg) !important;
 }
 
 html.clarityone-enabled a {

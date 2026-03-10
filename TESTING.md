@@ -1,5 +1,13 @@
 # ClarityOne Manual Test Checklist
 
+## Automated Testing
+- `npm run test` runs unit tests for background/settings logic.
+- `npm run test:e2e` runs Playwright extension tests and requires a local GUI/browser environment that can launch an unpacked extension context.
+- `npm run test:all` always runs `npm run test`, then auto-runs e2e only when the environment supports it.
+- `SKIP_E2E=1 npm run test:all` skips e2e explicitly.
+- `REQUIRE_E2E=1 npm run test:all` fails if e2e cannot run in the current environment.
+- `npm run test:ci` runs `build` + unit tests only (safe for headless CI).
+
 ## Setup
 - [ ] Load unpacked extension from `clarityone/src/` in `chrome://extensions`
 - [ ] Verify all 3 icons appear (16, 48, 128)

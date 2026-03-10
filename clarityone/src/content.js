@@ -1,6 +1,14 @@
 const ROOT_CLASS = 'clarityone-enabled';
 const STYLE_ID = 'clarityone-inline-style';
 const SKIP_LINK_ID = 'clarityone-skip-link';
+const SCALED_ATTR = 'data-clarityone-base-font-size';
+const TEXT_SELECTOR = [
+  'p', 'span', 'a', 'li', 'dt', 'dd', 'label', 'button', 'input', 'textarea',
+  'select', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'small', 'strong',
+  'em', 'blockquote', 'figcaption', 'div'
+].join(',');
+
+let currentSettings = null;
 
 function ensureInlineStyle() {
   let styleEl = document.getElementById(STYLE_ID);
@@ -35,21 +43,56 @@ function ensureSkipLink() {
   document.body.prepend(skipLink);
 }
 
+function clearTextScale() {
+  const scaled = document.querySelectorAll(`[${SCALED_ATTR}]`);
+  for (const el of scaled) {
+    el.style.removeProperty('font-size');
+    el.removeAttribute(SCALED_ATTR);
+  }
+}
+
+function applyTextScale(scale) {
+  const targets = document.querySelectorAll(TEXT_SELECTOR);
+  for (const el of targets) {
+    if (!el.getAttribute(SCALED_ATTR)) {
+      const computed = window.getComputedStyle(el).fontSize;
+      const px = Number.parseFloat(computed);
+      if (!Number.isFinite(px) || px <= 0) continue;
+      el.setAttribute(SCALED_ATTR, String(px));
+    }
+    const base = Number.parseFloat(el.getAttribute(SCALED_ATTR));
+    if (!Number.isFinite(base) || base <= 0) continue;
+    el.style.setProperty('font-size', `${(base * scale).toFixed(2)}px`, 'important');
+  }
+}
+
 function applySettings(settings) {
   const root = document.documentElement;
   const body = document.body;
   if (!body) return;
+  currentSettings = settings;
 
   if (!settings.enabled) {
     root.classList.remove(ROOT_CLASS);
-    root.classList.remove('clarityone-contrast-light', 'clarityone-contrast-dark', 'clarityone-contrast-yellow');
+    root.classList.remove(
+      'clarityone-contrast-light',
+      'clarityone-contrast-dark',
+      'clarityone-contrast-yellow',
+      'clarityone-contrast-invert'
+    );
     const styleEl = document.getElementById(STYLE_ID);
     if (styleEl) styleEl.textContent = '';
+    clearTextScale();
     return;
   }
 
   root.classList.add(ROOT_CLASS);
-  root.classList.remove('clarityone-contrast-light', 'clarityone-contrast-dark', 'clarityone-contrast-yellow');
+  root.classList.remove(
+    'clarityone-contrast-light',
+    'clarityone-contrast-dark',
+    'clarityone-contrast-yellow',
+    'clarityone-contrast-invert'
+  );
   root.classList.add(`clarityone-contrast-${settings.contrastMode}`);
 
   const styleEl = ensureInlineStyle();
@@ -62,6 +105,7 @@ function applySettings(settings) {
     }
   `;
 
+  applyTextScale(settings.fontScale);
   ensureSkipLink();
 }
 
@@ -70,6 +114,9 @@ const observer = new MutationObserver(() => {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     ensureSkipLink();
+    if (currentSettings?.enabled) {
+      applyTextScale(currentSettings.fontScale);
+    }
   }, 300);
 });
 

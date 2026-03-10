@@ -5,7 +5,13 @@
   "description": "A lightweight browser accessibility extension for improving contrast, text readability, and keyboard focus.",
   "scripts": {
     "build": "bash scripts/build.sh",
-    "test": "node tests/background.test.mjs"
+    "test": "node tests/background.test.mjs",
+    "test:e2e": "npx playwright test",
+    "test:all": "bash scripts/test-all.sh",
+    "test:ci": "npm run build && npm test"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@axe-core/playwright": "^4.10.0"
+  }
 }

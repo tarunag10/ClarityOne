@@ -8,6 +8,30 @@ const DEFAULT_SETTINGS = {
   siteOverrides: {}
 };
 
+async function ensureContentLayer(tabId) {
+  await chrome.scripting.insertCSS({
+    target: { tabId },
+    files: ['content.css']
+  });
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    files: ['content.js']
+  });
+}
+
+async function applySettingsToTab(tabId, settings) {
+  try {
+    await chrome.tabs.sendMessage(tabId, { type: 'APPLY_SETTINGS', settings });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (!msg.includes('Receiving end does not exist')) {
+      throw error;
+    }
+    await ensureContentLayer(tabId);
+    await chrome.tabs.sendMessage(tabId, { type: 'APPLY_SETTINGS', settings });
+  }
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   const existing = await chrome.storage.local.get('claritySettings');
   if (!existing.claritySettings) {
@@ -27,7 +51,11 @@ chrome.commands.onCommand.addListener(async (command) => {
   const { claritySettings = DEFAULT_SETTINGS } = await chrome.storage.local.get('claritySettings');
   const nextSettings = { ...claritySettings, enabled: !claritySettings.enabled };
   await chrome.storage.local.set({ claritySettings: nextSettings });
-  chrome.tabs.sendMessage(tab.id, { type: 'APPLY_SETTINGS', settings: nextSettings });
+  try {
+    await applySettingsToTab(tab.id, nextSettings);
+  } catch (_) {
+    // Ignore tabs where script injection is not allowed (e.g., browser internal pages).
+  }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -89,8 +117,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ ok: false });
         return;
       }
-      chrome.tabs.sendMessage(tab.id, { type: 'APPLY_SETTINGS', settings: message.settings });
-      sendResponse({ ok: true });
+      applySettingsToTab(tab.id, message.settings)
+        .then(() => sendResponse({ ok: true }))
+        .catch(() => sendResponse({ ok: false }));
     });
     return true;
   }
