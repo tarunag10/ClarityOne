@@ -47,6 +47,18 @@ button {
   cursor: pointer;
 }
 
+.site-override-row {
+  background: #f0f4ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.site-override-row strong {
+  color: #0055cc;
+  word-break: break-all;
+}
+
 button:focus,
 input:focus,
 select:focus {

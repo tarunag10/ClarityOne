@@ -67,13 +67,42 @@ function createHandler(chrome) {
   const handler = (message, sender, sendResponse) => {
     if (message.type === 'GET_SETTINGS') {
       chrome.storage.local.get('claritySettings').then(({ claritySettings = DEFAULT_SETTINGS }) => {
-        sendResponse({ settings: claritySettings });
+        const hostname = message.hostname;
+        if (hostname && claritySettings.siteOverrides && claritySettings.siteOverrides[hostname]) {
+          const merged = { ...claritySettings, ...claritySettings.siteOverrides[hostname] };
+          merged.siteOverrides = claritySettings.siteOverrides;
+          sendResponse({ settings: merged });
+        } else {
+          sendResponse({ settings: claritySettings });
+        }
       });
       return true;
     }
     if (message.type === 'SAVE_SETTINGS') {
       chrome.storage.local.set({ claritySettings: message.settings }).then(() => {
         sendResponse({ ok: true });
+      });
+      return true;
+    }
+    if (message.type === 'SAVE_SITE_SETTINGS') {
+      chrome.storage.local.get('claritySettings').then(({ claritySettings = DEFAULT_SETTINGS }) => {
+        const overrides = { ...claritySettings.siteOverrides };
+        overrides[message.hostname] = message.overrides;
+        const updated = { ...claritySettings, siteOverrides: overrides };
+        chrome.storage.local.set({ claritySettings: updated }).then(() => {
+          sendResponse({ ok: true });
+        });
+      });
+      return true;
+    }
+    if (message.type === 'REMOVE_SITE_SETTINGS') {
+      chrome.storage.local.get('claritySettings').then(({ claritySettings = DEFAULT_SETTINGS }) => {
+        const overrides = { ...claritySettings.siteOverrides };
+        delete overrides[message.hostname];
+        const updated = { ...claritySettings, siteOverrides: overrides };
+        chrome.storage.local.set({ claritySettings: updated }).then(() => {
+          sendResponse({ ok: true });
+        });
       });
       return true;
     }
@@ -138,4 +167,44 @@ test('APPLY_TO_ACTIVE_TAB sends message to tab', async () => {
   assert.strictEqual(response.ok, true);
   assert.strictEqual(sentMessage.id, 1);
   assert.strictEqual(sentMessage.msg.type, 'APPLY_SETTINGS');
+});
+
+test('SAVE_SITE_SETTINGS stores override for hostname', async () => {
+  const chrome = createChromeMock({ claritySettings: { ...DEFAULT_SETTINGS } });
+  createHandler(chrome);
+  const response = await chrome.sendMessage({
+    type: 'SAVE_SITE_SETTINGS',
+    hostname: 'example.com',
+    overrides: { contrastMode: 'dark' }
+  });
+  assert.strictEqual(response.ok, true);
+  assert.deepStrictEqual(chrome._storage.claritySettings.siteOverrides['example.com'], { contrastMode: 'dark' });
+});
+
+test('REMOVE_SITE_SETTINGS deletes override for hostname', async () => {
+  const initial = { ...DEFAULT_SETTINGS, siteOverrides: { 'example.com': { contrastMode: 'dark' } } };
+  const chrome = createChromeMock({ claritySettings: initial });
+  createHandler(chrome);
+  const response = await chrome.sendMessage({ type: 'REMOVE_SITE_SETTINGS', hostname: 'example.com' });
+  assert.strictEqual(response.ok, true);
+  assert.strictEqual(chrome._storage.claritySettings.siteOverrides['example.com'], undefined);
+});
+
+test('GET_SETTINGS with hostname returns merged site settings', async () => {
+  const initial = { ...DEFAULT_SETTINGS, siteOverrides: { 'example.com': { contrastMode: 'dark', fontScale: 1.8 } } };
+  const chrome = createChromeMock({ claritySettings: initial });
+  createHandler(chrome);
+  const response = await chrome.sendMessage({ type: 'GET_SETTINGS', hostname: 'example.com' });
+  assert.strictEqual(response.settings.contrastMode, 'dark');
+  assert.strictEqual(response.settings.fontScale, 1.8);
+  assert.strictEqual(response.settings.readableFont, true); // from global
+  assert.deepStrictEqual(response.settings.siteOverrides, initial.siteOverrides);
+});
+
+test('GET_SETTINGS without hostname returns global settings', async () => {
+  const initial = { ...DEFAULT_SETTINGS, siteOverrides: { 'example.com': { contrastMode: 'dark' } } };
+  const chrome = createChromeMock({ claritySettings: initial });
+  createHandler(chrome);
+  const response = await chrome.sendMessage({ type: 'GET_SETTINGS' });
+  assert.strictEqual(response.settings.contrastMode, 'light'); // global, not overridden
 });

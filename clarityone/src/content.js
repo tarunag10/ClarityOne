@@ -80,7 +80,7 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 function boot() {
-  chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (response) => {
+  chrome.runtime.sendMessage({ type: 'GET_SETTINGS', hostname: window.location.hostname }, (response) => {
     if (chrome.runtime.lastError || !response?.settings) return;
     applySettings(response.settings);
     observer.observe(document.documentElement, { childList: true, subtree: true });

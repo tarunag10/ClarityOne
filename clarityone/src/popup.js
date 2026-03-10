@@ -7,8 +7,15 @@ const els = {
   lineHeightValue: document.getElementById('lineHeightValue'),
   readableFont: document.getElementById('readableFont'),
   enhancedFocus: document.getElementById('enhancedFocus'),
-  resetButton: document.getElementById('resetButton')
+  resetButton: document.getElementById('resetButton'),
+  siteOverrideRow: document.getElementById('siteOverrideRow'),
+  siteOverride: document.getElementById('siteOverride'),
+  hostnameLabel: document.getElementById('hostnameLabel')
 };
+
+let currentHostname = null;
+let globalSettings = null;
+let siteOverrideActive = false;
 
 function render(settings) {
   els.enabled.checked = settings.enabled;
@@ -30,19 +37,74 @@ function collectSettings() {
     fontScale: Number(els.fontScale.value),
     lineHeight: Number(els.lineHeight.value),
     readableFont: els.readableFont.checked,
-    enhancedFocus: els.enhancedFocus.checked,
-    siteOverrides: {}
+    enhancedFocus: els.enhancedFocus.checked
   };
 }
 
-function save(settings) {
-  chrome.runtime.sendMessage({ type: 'SAVE_SETTINGS', settings }, () => {
-    chrome.runtime.sendMessage({ type: 'APPLY_TO_ACTIVE_TAB', settings });
-  });
+function collectOverrideKeys() {
+  const current = collectSettings();
+  const overrides = {};
+  for (const key of ['enabled', 'contrastMode', 'fontScale', 'lineHeight', 'readableFont', 'enhancedFocus']) {
+    if (globalSettings && current[key] !== globalSettings[key]) {
+      overrides[key] = current[key];
+    }
+  }
+  return overrides;
 }
 
+function save(settings) {
+  if (siteOverrideActive && currentHostname) {
+    const overrides = collectOverrideKeys();
+    chrome.runtime.sendMessage({ type: 'SAVE_SITE_SETTINGS', hostname: currentHostname, overrides }, () => {
+      const merged = { ...globalSettings, ...overrides };
+      chrome.runtime.sendMessage({ type: 'APPLY_TO_ACTIVE_TAB', settings: merged });
+    });
+  } else {
+    const full = { ...settings, siteOverrides: globalSettings?.siteOverrides || {} };
+    chrome.runtime.sendMessage({ type: 'SAVE_SETTINGS', settings: full }, () => {
+      chrome.runtime.sendMessage({ type: 'APPLY_TO_ACTIVE_TAB', settings: full });
+    });
+  }
+}
+
+// Detect active tab hostname
+chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  if (tab?.url) {
+    try {
+      currentHostname = new URL(tab.url).hostname;
+      if (currentHostname) {
+        els.hostnameLabel.textContent = currentHostname;
+        els.siteOverrideRow.hidden = false;
+      }
+    } catch (_) { /* chrome:// or similar */ }
+  }
+});
+
 chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (response) => {
-  if (response?.settings) render(response.settings);
+  if (!response?.settings) return;
+  const settings = response.settings;
+  globalSettings = { ...settings };
+  // Check if site override exists
+  if (currentHostname && settings.siteOverrides && settings.siteOverrides[currentHostname]) {
+    siteOverrideActive = true;
+    els.siteOverride.checked = true;
+    const merged = { ...settings, ...settings.siteOverrides[currentHostname] };
+    render(merged);
+  } else {
+    render(settings);
+  }
+});
+
+els.siteOverride.addEventListener('change', () => {
+  siteOverrideActive = els.siteOverride.checked;
+  if (!siteOverrideActive && currentHostname) {
+    chrome.runtime.sendMessage({ type: 'REMOVE_SITE_SETTINGS', hostname: currentHostname }, () => {
+      if (globalSettings) {
+        render(globalSettings);
+        chrome.runtime.sendMessage({ type: 'APPLY_TO_ACTIVE_TAB', settings: globalSettings });
+      }
+    });
+  }
 });
 
 ['enabled', 'contrastMode', 'fontScale', 'lineHeight', 'readableFont', 'enhancedFocus'].forEach((key) => {
@@ -56,6 +118,9 @@ chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (response) => {
 els.resetButton.addEventListener('click', () => {
   chrome.runtime.sendMessage({ type: 'RESET_SETTINGS' }, (response) => {
     if (response?.settings) {
+      globalSettings = { ...response.settings };
+      siteOverrideActive = false;
+      els.siteOverride.checked = false;
       render(response.settings);
       chrome.runtime.sendMessage({ type: 'APPLY_TO_ACTIVE_TAB', settings: response.settings });
     }

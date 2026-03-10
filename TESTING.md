@@ -33,5 +33,15 @@
 - [ ] Click "Reset to defaults" — all values return to defaults
 - [ ] Update extension version — existing settings preserved, new keys merged
 
+## Per-Site Settings Overrides (SO1)
+- [ ] Open popup on any site — "Custom settings for [hostname]" toggle is visible
+- [ ] Enable the site override toggle — checkbox becomes checked
+- [ ] Change contrast mode while override is active — only that site is affected
+- [ ] Navigate to a different site, open popup — global settings shown, override toggle unchecked
+- [ ] Return to first site, open popup — custom settings still applied, toggle checked
+- [ ] Disable the site override toggle — settings revert to global
+- [ ] Click "Reset to defaults" — site overrides are cleared, toggle unchecked
+- [ ] Open popup on `chrome://extensions` — site override row is hidden (no hostname)
+
 ## Keyboard Shortcut
 - [ ] Press Alt+Shift+A — extension toggles on/off

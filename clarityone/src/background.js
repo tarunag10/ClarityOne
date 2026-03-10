@@ -33,7 +33,14 @@ chrome.commands.onCommand.addListener(async (command) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'GET_SETTINGS') {
     chrome.storage.local.get('claritySettings').then(({ claritySettings = DEFAULT_SETTINGS }) => {
-      sendResponse({ settings: claritySettings });
+      const hostname = message.hostname;
+      if (hostname && claritySettings.siteOverrides && claritySettings.siteOverrides[hostname]) {
+        const merged = { ...claritySettings, ...claritySettings.siteOverrides[hostname] };
+        merged.siteOverrides = claritySettings.siteOverrides;
+        sendResponse({ settings: merged });
+      } else {
+        sendResponse({ settings: claritySettings });
+      }
     });
     return true;
   }
@@ -41,6 +48,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'SAVE_SETTINGS') {
     chrome.storage.local.set({ claritySettings: message.settings }).then(() => {
       sendResponse({ ok: true });
+    });
+    return true;
+  }
+
+  if (message.type === 'SAVE_SITE_SETTINGS') {
+    chrome.storage.local.get('claritySettings').then(({ claritySettings = DEFAULT_SETTINGS }) => {
+      const overrides = { ...claritySettings.siteOverrides };
+      overrides[message.hostname] = message.overrides;
+      const updated = { ...claritySettings, siteOverrides: overrides };
+      chrome.storage.local.set({ claritySettings: updated }).then(() => {
+        sendResponse({ ok: true });
+      });
+    });
+    return true;
+  }
+
+  if (message.type === 'REMOVE_SITE_SETTINGS') {
+    chrome.storage.local.get('claritySettings').then(({ claritySettings = DEFAULT_SETTINGS }) => {
+      const overrides = { ...claritySettings.siteOverrides };
+      delete overrides[message.hostname];
+      const updated = { ...claritySettings, siteOverrides: overrides };
+      chrome.storage.local.set({ claritySettings: updated }).then(() => {
+        sendResponse({ ok: true });
+      });
     });
     return true;
   }

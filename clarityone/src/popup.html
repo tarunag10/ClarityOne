@@ -10,6 +10,13 @@
     <main class="popup" role="main" aria-label="ClarityOne accessibility settings">
       <h1>ClarityOne</h1>
 
+      <div class="row site-override-row" id="siteOverrideRow" hidden>
+        <label class="row" for="siteOverride">
+          <span>Custom settings for <strong id="hostnameLabel"></strong></span>
+        </label>
+        <input id="siteOverride" type="checkbox" aria-label="Enable custom settings for this site" />
+      </div>
+
       <label class="row toggle-row">
         <span>Enable accessibility mode</span>
         <input id="enabled" type="checkbox" aria-label="Enable accessibility mode" />
