@@ -1,0 +1,66 @@
+const DEFAULT_SETTINGS = {
+  enabled: false,
+  contrastMode: 'light',
+  fontScale: 1.2,
+  readableFont: true,
+  enhancedFocus: true,
+  lineHeight: 1.7,
+  siteOverrides: {}
+};
+
+chrome.runtime.onInstalled.addListener(async () => {
+  const existing = await chrome.storage.local.get('claritySettings');
+  if (!existing.claritySettings) {
+    await chrome.storage.local.set({ claritySettings: DEFAULT_SETTINGS });
+  } else {
+    const merged = { ...DEFAULT_SETTINGS, ...existing.claritySettings };
+    await chrome.storage.local.set({ claritySettings: merged });
+  }
+});
+
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command !== 'toggle-clarity') return;
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return;
+
+  const { claritySettings = DEFAULT_SETTINGS } = await chrome.storage.local.get('claritySettings');
+  const nextSettings = { ...claritySettings, enabled: !claritySettings.enabled };
+  await chrome.storage.local.set({ claritySettings: nextSettings });
+  chrome.tabs.sendMessage(tab.id, { type: 'APPLY_SETTINGS', settings: nextSettings });
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'GET_SETTINGS') {
+    chrome.storage.local.get('claritySettings').then(({ claritySettings = DEFAULT_SETTINGS }) => {
+      sendResponse({ settings: claritySettings });
+    });
+    return true;
+  }
+
+  if (message.type === 'SAVE_SETTINGS') {
+    chrome.storage.local.set({ claritySettings: message.settings }).then(() => {
+      sendResponse({ ok: true });
+    });
+    return true;
+  }
+
+  if (message.type === 'RESET_SETTINGS') {
+    chrome.storage.local.set({ claritySettings: DEFAULT_SETTINGS }).then(() => {
+      sendResponse({ settings: DEFAULT_SETTINGS });
+    });
+    return true;
+  }
+
+  if (message.type === 'APPLY_TO_ACTIVE_TAB') {
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+      if (!tab?.id) {
+        sendResponse({ ok: false });
+        return;
+      }
+      chrome.tabs.sendMessage(tab.id, { type: 'APPLY_SETTINGS', settings: message.settings });
+      sendResponse({ ok: true });
+    });
+    return true;
+  }
+});

@@ -1,0 +1,37 @@
+# ClarityOne Manual Test Checklist
+
+## Setup
+- [ ] Load unpacked extension from `clarityone/src/` in `chrome://extensions`
+- [ ] Verify all 3 icons appear (16, 48, 128)
+
+## Font Scaling (C1)
+- [ ] Enable extension, set font scale to 1.5x
+- [ ] Open a page with deeply nested elements (e.g. `<div><div><p><span>text</span></p></div></div>`)
+- [ ] Verify text does NOT compound — all text should be same size regardless of nesting depth
+
+## Contrast Themes (C2)
+- [ ] Test **Light** mode: headings, links, buttons, inputs, tables all styled correctly
+- [ ] Test **Dark** mode: all elements have white text on dark backgrounds, links are blue
+- [ ] Test **Yellow-on-black** mode: all elements yellow on black, links cyan
+
+## MutationObserver (C3)
+- [ ] Open DevTools Performance tab on a SPA (e.g. Gmail, Twitter)
+- [ ] Navigate between views — verify no message storm in console
+- [ ] Verify skip link still appears after SPA navigation
+
+## Line Height (P1)
+- [ ] Open popup, verify line-height slider is present
+- [ ] Adjust slider — verify page content line-height updates live
+
+## ARIA / Accessibility (P2)
+- [ ] Keyboard-navigate entire popup with Tab key
+- [ ] Verify screen reader announces all controls with proper labels
+- [ ] Verify output values are announced on change (aria-live)
+
+## Settings Persistence (S1/S2)
+- [ ] Change settings, close and reopen browser — settings persist
+- [ ] Click "Reset to defaults" — all values return to defaults
+- [ ] Update extension version — existing settings preserved, new keys merged
+
+## Keyboard Shortcut
+- [ ] Press Alt+Shift+A — extension toggles on/off

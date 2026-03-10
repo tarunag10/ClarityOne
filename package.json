@@ -1,0 +1,11 @@
+{
+  "name": "clarityone",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A lightweight browser accessibility extension for improving contrast, text readability, and keyboard focus.",
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "test": "node tests/background.test.mjs"
+  },
+  "devDependencies": {}
+}

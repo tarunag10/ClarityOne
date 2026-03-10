@@ -1,0 +1,153 @@
+html.clarityone-enabled,
+html.clarityone-enabled body {
+  font-family: var(--clarityone-font-family, Arial, Helvetica, sans-serif) !important;
+  line-height: var(--clarityone-line-height, 1.7) !important;
+}
+
+html.clarityone-enabled body,
+html.clarityone-enabled p,
+html.clarityone-enabled li,
+html.clarityone-enabled a,
+html.clarityone-enabled label,
+html.clarityone-enabled input,
+html.clarityone-enabled textarea,
+html.clarityone-enabled select,
+html.clarityone-enabled button,
+html.clarityone-enabled td,
+html.clarityone-enabled th,
+html.clarityone-enabled span,
+html.clarityone-enabled div {
+  font-size: calc(1rem * var(--clarityone-font-scale, 1.2)) !important;
+}
+
+html.clarityone-enabled *:focus {
+  outline: var(--clarityone-focus-outline, 3px solid #ff9900) !important;
+  outline-offset: 2px !important;
+}
+
+/* Light contrast theme */
+html.clarityone-enabled.clarityone-contrast-light,
+html.clarityone-enabled.clarityone-contrast-light body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+html.clarityone-enabled.clarityone-contrast-light h1,
+html.clarityone-enabled.clarityone-contrast-light h2,
+html.clarityone-enabled.clarityone-contrast-light h3,
+html.clarityone-enabled.clarityone-contrast-light h4,
+html.clarityone-enabled.clarityone-contrast-light h5,
+html.clarityone-enabled.clarityone-contrast-light h6 {
+  color: #000000 !important;
+}
+html.clarityone-enabled.clarityone-contrast-light a {
+  color: #0000ee !important;
+}
+html.clarityone-enabled.clarityone-contrast-light button,
+html.clarityone-enabled.clarityone-contrast-light input,
+html.clarityone-enabled.clarityone-contrast-light select,
+html.clarityone-enabled.clarityone-contrast-light textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
+html.clarityone-enabled.clarityone-contrast-light table,
+html.clarityone-enabled.clarityone-contrast-light th,
+html.clarityone-enabled.clarityone-contrast-light td {
+  border: 1px solid #000000 !important;
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+
+/* Dark contrast theme */
+html.clarityone-enabled.clarityone-contrast-dark,
+html.clarityone-enabled.clarityone-contrast-dark body {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+html.clarityone-enabled.clarityone-contrast-dark h1,
+html.clarityone-enabled.clarityone-contrast-dark h2,
+html.clarityone-enabled.clarityone-contrast-dark h3,
+html.clarityone-enabled.clarityone-contrast-dark h4,
+html.clarityone-enabled.clarityone-contrast-dark h5,
+html.clarityone-enabled.clarityone-contrast-dark h6 {
+  color: #ffffff !important;
+}
+html.clarityone-enabled.clarityone-contrast-dark a {
+  color: #66bbff !important;
+}
+html.clarityone-enabled.clarityone-contrast-dark button,
+html.clarityone-enabled.clarityone-contrast-dark input,
+html.clarityone-enabled.clarityone-contrast-dark select,
+html.clarityone-enabled.clarityone-contrast-dark textarea {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+}
+html.clarityone-enabled.clarityone-contrast-dark table,
+html.clarityone-enabled.clarityone-contrast-dark th,
+html.clarityone-enabled.clarityone-contrast-dark td {
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  background: #1a1a1a !important;
+}
+
+/* Yellow-on-black contrast theme */
+html.clarityone-enabled.clarityone-contrast-yellow,
+html.clarityone-enabled.clarityone-contrast-yellow body {
+  background: #000000 !important;
+  color: #ffff00 !important;
+}
+html.clarityone-enabled.clarityone-contrast-yellow h1,
+html.clarityone-enabled.clarityone-contrast-yellow h2,
+html.clarityone-enabled.clarityone-contrast-yellow h3,
+html.clarityone-enabled.clarityone-contrast-yellow h4,
+html.clarityone-enabled.clarityone-contrast-yellow h5,
+html.clarityone-enabled.clarityone-contrast-yellow h6 {
+  color: #ffff00 !important;
+}
+html.clarityone-enabled.clarityone-contrast-yellow a {
+  color: #00ffff !important;
+}
+html.clarityone-enabled.clarityone-contrast-yellow button,
+html.clarityone-enabled.clarityone-contrast-yellow input,
+html.clarityone-enabled.clarityone-contrast-yellow select,
+html.clarityone-enabled.clarityone-contrast-yellow textarea {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #ffff00 !important;
+}
+html.clarityone-enabled.clarityone-contrast-yellow table,
+html.clarityone-enabled.clarityone-contrast-yellow th,
+html.clarityone-enabled.clarityone-contrast-yellow td {
+  border: 1px solid #ffff00 !important;
+  color: #ffff00 !important;
+  background: #1a1a00 !important;
+}
+
+html.clarityone-enabled a {
+  text-decoration: underline !important;
+}
+
+html.clarityone-enabled img,
+html.clarityone-enabled video,
+html.clarityone-enabled canvas,
+html.clarityone-enabled svg {
+  max-width: 100% !important;
+}
+
+.clarityone-skip-link {
+  position: absolute;
+  left: 12px;
+  top: -48px;
+  z-index: 2147483647;
+  background: #000000;
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.clarityone-skip-link:focus {
+  top: 12px;
+}

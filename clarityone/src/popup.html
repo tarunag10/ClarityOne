@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClarityOne</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup" role="main" aria-label="ClarityOne accessibility settings">
+      <h1>ClarityOne</h1>
+
+      <label class="row toggle-row">
+        <span>Enable accessibility mode</span>
+        <input id="enabled" type="checkbox" aria-label="Enable accessibility mode" />
+      </label>
+
+      <label class="stack">
+        <span>Contrast mode</span>
+        <select id="contrastMode" aria-label="Contrast mode">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="yellow">Yellow on black</option>
+        </select>
+      </label>
+
+      <label class="stack">
+        <span>Font scale</span>
+        <input id="fontScale" type="range" min="1" max="2" step="0.1" aria-label="Font scale" aria-valuemin="1" aria-valuemax="2" aria-valuenow="1.2" />
+        <output id="fontScaleValue" aria-live="polite">1.2x</output>
+      </label>
+
+      <label class="stack">
+        <span>Line height</span>
+        <input id="lineHeight" type="range" min="1" max="3" step="0.1" aria-label="Line height" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.7" />
+        <output id="lineHeightValue" aria-live="polite">1.7</output>
+      </label>
+
+      <label class="row toggle-row">
+        <span>Readable font</span>
+        <input id="readableFont" type="checkbox" aria-label="Readable font" />
+      </label>
+
+      <label class="row toggle-row">
+        <span>Enhanced focus</span>
+        <input id="enhancedFocus" type="checkbox" aria-label="Enhanced focus" />
+      </label>
+
+      <button id="resetButton" type="button" aria-label="Reset all settings to defaults">Reset to defaults</button>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
