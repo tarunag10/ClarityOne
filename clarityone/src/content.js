@@ -94,6 +94,97 @@ function applyTextScale(scale) {
   }
 }
 
+function toSelector(el) {
+  if (!el || el.nodeType !== Node.ELEMENT_NODE) return '';
+  if (el.id) return `#${CSS.escape(el.id)}`;
+  const parts = [];
+  let node = el;
+  while (node && node.nodeType === Node.ELEMENT_NODE && node !== document.body) {
+    const tag = node.tagName.toLowerCase();
+    const siblings = node.parentElement
+      ? Array.from(node.parentElement.children).filter((child) => child.tagName === node.tagName)
+      : [];
+    const index = siblings.indexOf(node) + 1;
+    parts.unshift(`${tag}:nth-of-type(${index})`);
+    node = node.parentElement;
+  }
+  return `body > ${parts.join(' > ')}`;
+}
+
+function clearIssueHighlight() {
+  for (const el of document.querySelectorAll('.clarityone-a11y-highlight')) {
+    el.classList.remove('clarityone-a11y-highlight');
+  }
+}
+
+function highlightIssue(selector) {
+  clearIssueHighlight();
+  if (!selector) return { ok: false };
+  const el = document.querySelector(selector);
+  if (!el) return { ok: false };
+  el.classList.add('clarityone-a11y-highlight');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+  return { ok: true };
+}
+
+function scanPage() {
+  const issues = [];
+  const pushIssue = (type, message, el) => {
+    issues.push({ type, message, selector: el ? toSelector(el) : '' });
+  };
+
+  // Images missing useful alt text
+  const missingAlt = Array.from(document.querySelectorAll('img')).filter((img) => !img.hasAttribute('alt') || !img.getAttribute('alt').trim());
+  for (const img of missingAlt.slice(0, 10)) {
+    pushIssue('Image alt text', 'Image is missing alt text.', img);
+  }
+
+  // Heading structure checks
+  const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+  const h1s = headings.filter((h) => h.tagName === 'H1');
+  if (h1s.length === 0) {
+    pushIssue('Heading structure', 'No H1 heading found on the page.', document.querySelector('main') || document.body);
+  }
+  let lastLevel = 0;
+  for (const heading of headings) {
+    const level = Number(heading.tagName.replace('H', ''));
+    if (lastLevel > 0 && level - lastLevel > 1) {
+      pushIssue('Heading structure', `Heading level jumps from H${lastLevel} to H${level}.`, heading);
+    }
+    lastLevel = level;
+  }
+
+  // Landmark presence checks
+  const hasMain = Boolean(document.querySelector('main, [role="main"]'));
+  const hasNav = Boolean(document.querySelector('nav, [role="navigation"]'));
+  if (!hasMain) {
+    pushIssue('Landmarks', 'No main landmark found.', document.body);
+  }
+  if (!hasNav) {
+    pushIssue('Landmarks', 'No navigation landmark found.', document.body);
+  }
+
+  // Small text checks
+  const textNodes = Array.from(document.querySelectorAll('p, li, span'));
+  let smallTextCount = 0;
+  for (const el of textNodes) {
+    const text = (el.textContent || '').trim();
+    if (text.length < 20) continue;
+    const size = Number.parseFloat(window.getComputedStyle(el).fontSize);
+    if (Number.isFinite(size) && size < 12) {
+      smallTextCount += 1;
+      if (smallTextCount <= 10) {
+        pushIssue('Small text', `Text is ${size.toFixed(1)}px; consider >= 12px.`, el);
+      }
+    }
+  }
+
+  return {
+    totalIssues: issues.length,
+    issues
+  };
+}
+
 function applySettings(settings) {
   const root = document.documentElement;
   const body = document.body;
@@ -173,10 +264,20 @@ const observer = new MutationObserver(() => {
   }, 300);
 });
 
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'APPLY_SETTINGS') {
     applySettings(message.settings);
+    sendResponse?.({ ok: true });
+    return;
   }
+  if (message.type === 'SCAN_PAGE') {
+    sendResponse?.(scanPage());
+    return;
+  }
+  if (message.type === 'HIGHLIGHT_ISSUE') {
+    sendResponse?.(highlightIssue(message.selector));
+  }
+  return true;
 });
 
 function boot() {

@@ -65,3 +65,54 @@ select:focus {
   outline: 3px solid #ff9900;
   outline-offset: 2px;
 }
+
+.audit-section {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.scan-summary {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #333;
+}
+
+.scan-results {
+  display: grid;
+  gap: 8px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.scan-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+  display: grid;
+  gap: 6px;
+}
+
+.scan-item strong {
+  font-size: 0.82rem;
+}
+
+.scan-item p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #444;
+}
+
+.scan-item button {
+  padding: 6px 8px;
+  font-size: 0.78rem;
+}
+
+.credit {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #555;
+}

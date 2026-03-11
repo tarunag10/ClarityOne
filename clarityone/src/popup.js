@@ -16,6 +16,9 @@ const els = {
   dyslexiaFont: document.getElementById('dyslexiaFont'),
   enhancedFocus: document.getElementById('enhancedFocus'),
   readingMode: document.getElementById('readingMode'),
+  scanButton: document.getElementById('scanButton'),
+  scanSummary: document.getElementById('scanSummary'),
+  scanResults: document.getElementById('scanResults'),
   resetButton: document.getElementById('resetButton'),
   siteOverrideRow: document.getElementById('siteOverrideRow'),
   siteOverride: document.getElementById('siteOverride'),
@@ -25,6 +28,38 @@ const els = {
 let currentHostname = null;
 let globalSettings = null;
 let siteOverrideActive = false;
+
+function escapeHtml(value) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function renderScanReport(report) {
+  if (!report) {
+    els.scanSummary.textContent = 'No scan data available.';
+    els.scanResults.innerHTML = '';
+    return;
+  }
+  const total = report.totalIssues || 0;
+  if (total === 0) {
+    els.scanSummary.textContent = 'No issues found in this quick scan.';
+    els.scanResults.innerHTML = '';
+    return;
+  }
+
+  els.scanSummary.textContent = `${total} issue(s) found in quick scan.`;
+  els.scanResults.innerHTML = report.issues.map((issue) => `
+    <article class="scan-item">
+      <strong>${escapeHtml(issue.type)}</strong>
+      <p>${escapeHtml(issue.message)}</p>
+      ${issue.selector ? `<button type="button" data-selector="${escapeHtml(issue.selector)}">Highlight on page</button>` : ''}
+    </article>
+  `).join('');
+}
 
 function render(settings) {
   els.enabled.checked = settings.enabled;
@@ -152,4 +187,26 @@ els.resetButton.addEventListener('click', () => {
       chrome.runtime.sendMessage({ type: 'APPLY_TO_ACTIVE_TAB', settings: response.settings });
     }
   });
+});
+
+els.scanButton.addEventListener('click', () => {
+  els.scanButton.disabled = true;
+  els.scanSummary.textContent = 'Scanning...';
+  els.scanResults.innerHTML = '';
+  chrome.runtime.sendMessage({ type: 'SCAN_ACTIVE_TAB' }, (response) => {
+    els.scanButton.disabled = false;
+    if (!response?.ok) {
+      els.scanSummary.textContent = 'Scan failed on this page.';
+      return;
+    }
+    renderScanReport(response.report);
+  });
+});
+
+els.scanResults.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-selector]');
+  if (!button) return;
+  const selector = button.getAttribute('data-selector');
+  if (!selector) return;
+  chrome.runtime.sendMessage({ type: 'HIGHLIGHT_ISSUE_ACTIVE_TAB', selector }, () => {});
 });

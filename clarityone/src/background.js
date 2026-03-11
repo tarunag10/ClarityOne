@@ -25,17 +25,21 @@ async function ensureContentLayer(tabId) {
   });
 }
 
-async function applySettingsToTab(tabId, settings) {
+async function sendMessageToTab(tabId, message) {
   try {
-    await chrome.tabs.sendMessage(tabId, { type: 'APPLY_SETTINGS', settings });
+    return await chrome.tabs.sendMessage(tabId, message);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     if (!msg.includes('Receiving end does not exist')) {
       throw error;
     }
     await ensureContentLayer(tabId);
-    await chrome.tabs.sendMessage(tabId, { type: 'APPLY_SETTINGS', settings });
+    return await chrome.tabs.sendMessage(tabId, message);
   }
+}
+
+async function applySettingsToTab(tabId, settings) {
+  await sendMessageToTab(tabId, { type: 'APPLY_SETTINGS', settings });
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
@@ -126,6 +130,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       applySettingsToTab(tab.id, message.settings)
         .then(() => sendResponse({ ok: true }))
         .catch(() => sendResponse({ ok: false }));
+    });
+    return true;
+  }
+
+  if (message.type === 'SCAN_ACTIVE_TAB') {
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+      if (!tab?.id) {
+        sendResponse({ ok: false, error: 'No active tab found.' });
+        return;
+      }
+      sendMessageToTab(tab.id, { type: 'SCAN_PAGE' })
+        .then((report) => sendResponse({ ok: true, report }))
+        .catch((error) => sendResponse({ ok: false, error: String(error) }));
+    });
+    return true;
+  }
+
+  if (message.type === 'HIGHLIGHT_ISSUE_ACTIVE_TAB') {
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+      if (!tab?.id) {
+        sendResponse({ ok: false, error: 'No active tab found.' });
+        return;
+      }
+      sendMessageToTab(tab.id, { type: 'HIGHLIGHT_ISSUE', selector: message.selector })
+        .then(() => sendResponse({ ok: true }))
+        .catch((error) => sendResponse({ ok: false, error: String(error) }));
     });
     return true;
   }

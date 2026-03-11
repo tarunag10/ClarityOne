@@ -203,3 +203,9 @@ html.clarityone-enabled svg {
 .clarityone-skip-link:focus {
   top: 12px;
 }
+
+.clarityone-a11y-highlight {
+  outline: 4px solid #ff3b30 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.25) !important;
+}
