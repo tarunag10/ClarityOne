@@ -92,6 +92,7 @@ function renderScanReport(report) {
     <article class="scan-item">
       <strong>[${escapeHtml((issue.severity || 'medium').toUpperCase())}] ${escapeHtml(issue.type)}</strong>
       <p>${escapeHtml(issue.message)}</p>
+      ${issue.suggestion ? `<p><em>Fix:</em> ${escapeHtml(issue.suggestion)}</p>` : ''}
       ${issue.selector ? `<button type="button" data-selector="${escapeHtml(issue.selector)}">Highlight on page</button>` : ''}
     </article>
   `).join('');
@@ -123,11 +124,12 @@ function exportReportCsv() {
   if (!lastScanReport || !Array.isArray(lastScanReport.issues) || lastScanReport.issues.length === 0) return;
   const quote = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
   const rows = [
-    ['severity', 'type', 'message', 'selector'],
+    ['severity', 'type', 'message', 'suggestion', 'selector'],
     ...lastScanReport.issues.map((issue) => [
       issue.severity || 'medium',
       issue.type || '',
       issue.message || '',
+      issue.suggestion || '',
       issue.selector || ''
     ])
   ];
