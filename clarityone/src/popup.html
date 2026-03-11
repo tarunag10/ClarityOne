@@ -92,8 +92,37 @@
         <input id="readingMode" type="checkbox" aria-label="Reading mode" />
       </label>
 
+      <section class="stack presets-section" aria-label="Profile presets">
+        <label class="stack">
+          <span>Quick presets</span>
+          <select id="presetSelect" aria-label="Quick presets"></select>
+        </label>
+        <div class="row preset-actions">
+          <button id="applyPresetButton" type="button" aria-label="Apply selected preset">Apply preset</button>
+          <button id="savePresetButton" type="button" aria-label="Save current settings as preset">Save as preset</button>
+        </div>
+        <button id="deletePresetButton" type="button" aria-label="Delete selected custom preset">Delete selected preset</button>
+      </section>
+
+      <section class="stack rules-section" aria-label="Auto-apply rules">
+        <label class="stack">
+          <span>Auto-apply on domain pattern</span>
+          <input id="rulePatternInput" type="text" placeholder="*.gov.in or example.com" aria-label="Domain pattern for auto apply rule" />
+        </label>
+        <label class="stack">
+          <span>Preset for this pattern</span>
+          <select id="rulePresetSelect" aria-label="Preset to apply for this pattern"></select>
+        </label>
+        <button id="addRuleButton" type="button" aria-label="Add auto apply rule">Add rule</button>
+        <div id="rulesList" class="rules-list" aria-live="polite"></div>
+      </section>
+
       <section class="stack audit-section" aria-label="Accessibility audit">
-        <button id="scanButton" type="button" aria-label="Scan this page for accessibility issues">Scan this page</button>
+        <div class="row audit-actions">
+          <button id="scanButton" type="button" aria-label="Scan this page for accessibility issues">Scan this page</button>
+          <button id="exportJsonButton" type="button" aria-label="Export audit report as JSON">Export JSON</button>
+          <button id="exportCsvButton" type="button" aria-label="Export audit report as CSV">Export CSV</button>
+        </div>
         <p id="scanSummary" class="scan-summary" aria-live="polite"></p>
         <div id="scanResults" class="scan-results" aria-live="polite"></div>
       </section>

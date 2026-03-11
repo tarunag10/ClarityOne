@@ -129,27 +129,61 @@ function highlightIssue(selector) {
 
 function scanPage() {
   const issues = [];
-  const pushIssue = (type, message, el) => {
-    issues.push({ type, message, selector: el ? toSelector(el) : '' });
+  const pushIssue = (type, message, el, severity = 'medium') => {
+    issues.push({ type, message, severity, selector: el ? toSelector(el) : '' });
+  };
+
+  const parseRgb = (value) => {
+    const match = value && value.match(/rgba?\(([^)]+)\)/i);
+    if (!match) return null;
+    const parts = match[1].split(',').map((part) => Number.parseFloat(part.trim()));
+    if (parts.length < 3 || parts.some((n) => !Number.isFinite(n))) return null;
+    return { r: parts[0], g: parts[1], b: parts[2], a: Number.isFinite(parts[3]) ? parts[3] : 1 };
+  };
+
+  const srgbToLinear = (c) => {
+    const x = c / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  };
+
+  const luminance = (rgb) =>
+    (0.2126 * srgbToLinear(rgb.r)) + (0.7152 * srgbToLinear(rgb.g)) + (0.0722 * srgbToLinear(rgb.b));
+
+  const contrastRatio = (fg, bg) => {
+    const l1 = luminance(fg);
+    const l2 = luminance(bg);
+    const lighter = Math.max(l1, l2);
+    const darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+
+  const findBackgroundColor = (el) => {
+    let node = el;
+    while (node && node !== document.documentElement) {
+      const bg = parseRgb(window.getComputedStyle(node).backgroundColor);
+      if (bg && bg.a > 0.01) return bg;
+      node = node.parentElement;
+    }
+    return { r: 255, g: 255, b: 255, a: 1 };
   };
 
   // Images missing useful alt text
   const missingAlt = Array.from(document.querySelectorAll('img')).filter((img) => !img.hasAttribute('alt') || !img.getAttribute('alt').trim());
   for (const img of missingAlt.slice(0, 10)) {
-    pushIssue('Image alt text', 'Image is missing alt text.', img);
+    pushIssue('Image alt text', 'Image is missing alt text.', img, 'high');
   }
 
   // Heading structure checks
   const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
   const h1s = headings.filter((h) => h.tagName === 'H1');
   if (h1s.length === 0) {
-    pushIssue('Heading structure', 'No H1 heading found on the page.', document.querySelector('main') || document.body);
+    pushIssue('Heading structure', 'No H1 heading found on the page.', document.querySelector('main') || document.body, 'medium');
   }
   let lastLevel = 0;
   for (const heading of headings) {
     const level = Number(heading.tagName.replace('H', ''));
     if (lastLevel > 0 && level - lastLevel > 1) {
-      pushIssue('Heading structure', `Heading level jumps from H${lastLevel} to H${level}.`, heading);
+      pushIssue('Heading structure', `Heading level jumps from H${lastLevel} to H${level}.`, heading, 'medium');
     }
     lastLevel = level;
   }
@@ -158,10 +192,10 @@ function scanPage() {
   const hasMain = Boolean(document.querySelector('main, [role="main"]'));
   const hasNav = Boolean(document.querySelector('nav, [role="navigation"]'));
   if (!hasMain) {
-    pushIssue('Landmarks', 'No main landmark found.', document.body);
+    pushIssue('Landmarks', 'No main landmark found.', document.body, 'medium');
   }
   if (!hasNav) {
-    pushIssue('Landmarks', 'No navigation landmark found.', document.body);
+    pushIssue('Landmarks', 'No navigation landmark found.', document.body, 'low');
   }
 
   // Small text checks
@@ -174,7 +208,60 @@ function scanPage() {
     if (Number.isFinite(size) && size < 12) {
       smallTextCount += 1;
       if (smallTextCount <= 10) {
-        pushIssue('Small text', `Text is ${size.toFixed(1)}px; consider >= 12px.`, el);
+        pushIssue('Small text', `Text is ${size.toFixed(1)}px; consider >= 12px.`, el, 'medium');
+      }
+    }
+  }
+
+  // Form controls missing label checks
+  const controls = Array.from(document.querySelectorAll('input, select, textarea')).filter((el) => {
+    if (el.tagName === 'INPUT') {
+      const type = (el.getAttribute('type') || 'text').toLowerCase();
+      return !['hidden', 'submit', 'button', 'image', 'reset'].includes(type);
+    }
+    return true;
+  });
+  for (const control of controls.slice(0, 50)) {
+    const id = control.getAttribute('id');
+    const wrappedByLabel = Boolean(control.closest('label'));
+    const labelFor = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+    const aria = control.getAttribute('aria-label') || control.getAttribute('aria-labelledby');
+    if (!wrappedByLabel && !labelFor && !aria) {
+      pushIssue('Form label', 'Form control appears to be missing an associated label.', control, 'high');
+    }
+  }
+
+  // Ambiguous links
+  const ambiguous = ['click here', 'read more', 'more', 'here', 'link'];
+  for (const link of Array.from(document.querySelectorAll('a')).slice(0, 200)) {
+    const text = (link.textContent || '').trim().toLowerCase();
+    const aria = (link.getAttribute('aria-label') || link.getAttribute('title') || '').trim().toLowerCase();
+    if (!text && !aria) {
+      pushIssue('Link text', 'Link has no accessible name.', link, 'high');
+      continue;
+    }
+    const basis = text || aria;
+    if (ambiguous.includes(basis)) {
+      pushIssue('Link text', `Link text "${basis}" is ambiguous.`, link, 'low');
+    }
+  }
+
+  // Low contrast candidates
+  let contrastCount = 0;
+  const contrastTargets = Array.from(document.querySelectorAll('p, li, a, button, label, span'));
+  for (const el of contrastTargets) {
+    const text = (el.textContent || '').trim();
+    if (text.length < 8) continue;
+    const style = window.getComputedStyle(el);
+    if (style.visibility === 'hidden' || style.display === 'none') continue;
+    const fg = parseRgb(style.color);
+    const bg = findBackgroundColor(el);
+    if (!fg || !bg) continue;
+    const ratio = contrastRatio(fg, bg);
+    if (ratio < 4.5) {
+      contrastCount += 1;
+      if (contrastCount <= 10) {
+        pushIssue('Low contrast', `Estimated contrast ratio is ${ratio.toFixed(2)}:1 (< 4.5:1).`, el, 'high');
       }
     }
   }
@@ -284,6 +371,10 @@ function boot() {
   chrome.runtime.sendMessage({ type: 'GET_SETTINGS', hostname: window.location.hostname }, (response) => {
     if (chrome.runtime.lastError || !response?.settings) return;
     applySettings(response.settings);
+    chrome.runtime.sendMessage({
+      type: 'AUTO_APPLY_RULES',
+      hostname: window.location.hostname
+    }, () => {});
     observer.observe(document.documentElement, { childList: true, subtree: true });
   });
 }
