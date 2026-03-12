@@ -12,6 +12,7 @@ const TEXT_SELECTOR = [
 
 let currentSettings = null;
 let readingTarget = null;
+const mutedReadingNodes = new Set();
 
 function ensureInlineStyle() {
   let styleEl = document.getElementById(STYLE_ID);
@@ -65,9 +66,40 @@ function getReadingTarget() {
   );
 }
 
+function clearReadingModeIsolation() {
+  for (const el of mutedReadingNodes) {
+    el.classList.remove('clarityone-reading-muted');
+    el.removeAttribute('inert');
+    el.removeAttribute('aria-hidden');
+  }
+  mutedReadingNodes.clear();
+}
+
+function applyReadingModeIsolation(target) {
+  clearReadingModeIsolation();
+  if (!target) return;
+  if (target === document.body) return;
+  const keep = new Set();
+  let node = target;
+  while (node && node !== document.body) {
+    keep.add(node);
+    node = node.parentElement;
+  }
+  const children = Array.from(document.body.children);
+  for (const child of children) {
+    if (child.id === SKIP_LINK_ID) continue;
+    if (keep.has(child)) continue;
+    child.classList.add('clarityone-reading-muted');
+    child.setAttribute('inert', '');
+    child.setAttribute('aria-hidden', 'true');
+    mutedReadingNodes.add(child);
+  }
+}
+
 function applyReadingMode(enabled) {
   const root = document.documentElement;
   root.classList.remove(READING_MODE_CLASS);
+  clearReadingModeIsolation();
   if (readingTarget) {
     readingTarget.classList.remove(READING_TARGET_CLASS);
     readingTarget = null;
@@ -76,6 +108,7 @@ function applyReadingMode(enabled) {
   readingTarget = getReadingTarget();
   if (!readingTarget) return;
   readingTarget.classList.add(READING_TARGET_CLASS);
+  applyReadingModeIsolation(readingTarget);
   root.classList.add(READING_MODE_CLASS);
 }
 
@@ -405,6 +438,7 @@ function applySettings(settings) {
       readingTarget.classList.remove(READING_TARGET_CLASS);
       readingTarget = null;
     }
+    clearReadingModeIsolation();
     const styleEl = document.getElementById(STYLE_ID);
     if (styleEl) styleEl.textContent = '';
     clearTextScale();

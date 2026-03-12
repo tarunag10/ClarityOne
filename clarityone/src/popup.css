@@ -16,6 +16,27 @@ body {
   gap: 14px;
 }
 
+.tablist {
+  display: flex;
+  gap: 8px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 8px 10px;
+}
+
+.tab-button[aria-selected="true"] {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.tab-panel {
+  display: grid;
+  gap: 14px;
+}
+
 h1 {
   margin: 0;
   font-size: 1.2rem;

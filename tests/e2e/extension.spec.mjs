@@ -63,6 +63,26 @@ test('loads and shows controls', async () => {
   await popup.close();
 });
 
+test('popup uses separate accessibility and audit tabs', async () => {
+  const popup = await openPopup();
+
+  await expect(popup.locator('#accessibilityTab')).toHaveAttribute('aria-selected', 'true');
+  await expect(popup.locator('#enabled')).toBeVisible();
+  await expect(popup.locator('#scanButton')).toBeHidden();
+
+  await popup.locator('#accessibilityTab').focus();
+  await popup.keyboard.press('ArrowRight');
+  await expect(popup.locator('#auditTab')).toHaveAttribute('aria-selected', 'true');
+  await expect(popup.locator('#scanButton')).toBeVisible();
+  await expect(popup.locator('#enabled')).toBeHidden();
+
+  await popup.keyboard.press('Home');
+  await expect(popup.locator('#accessibilityTab')).toHaveAttribute('aria-selected', 'true');
+  await expect(popup.locator('#enabled')).toBeVisible();
+
+  await popup.close();
+});
+
 test('toggle enable/disable', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
@@ -223,4 +243,48 @@ test('settings persist after popup close/reopen', async () => {
   await popup2.locator('#resetButton').click();
   await popup2.waitForTimeout(300);
   await popup2.close();
+});
+
+test('reading mode isolates non-reading regions from keyboard and screen readers', async () => {
+  const page = await context.newPage();
+  await page.setContent(`
+    <header id="site-header"><a href="#main-content">Header link</a></header>
+    <main id="main-content"><h1>Article</h1><p>Readable content</p></main>
+    <aside id="site-aside"><button type="button">Aside action</button></aside>
+  `);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(500);
+
+  const popup = await openPopup();
+  await popup.locator('#enabled').check();
+  await popup.locator('#readingMode').check();
+  await page.waitForTimeout(500);
+
+  const isolated = await page.evaluate(() => ({
+    headerInert: document.getElementById('site-header')?.hasAttribute('inert'),
+    headerHidden: document.getElementById('site-header')?.getAttribute('aria-hidden'),
+    asideInert: document.getElementById('site-aside')?.hasAttribute('inert'),
+    mainInert: document.getElementById('main-content')?.hasAttribute('inert'),
+    htmlReadingMode: document.documentElement.classList.contains('clarityone-reading-mode')
+  }));
+  expect(isolated.headerInert).toBe(true);
+  expect(isolated.headerHidden).toBe('true');
+  expect(isolated.asideInert).toBe(true);
+  expect(isolated.mainInert).toBe(false);
+  expect(isolated.htmlReadingMode).toBe(true);
+
+  await popup.locator('#readingMode').uncheck();
+  await page.waitForTimeout(500);
+
+  const released = await page.evaluate(() => ({
+    headerInert: document.getElementById('site-header')?.hasAttribute('inert'),
+    headerHidden: document.getElementById('site-header')?.getAttribute('aria-hidden'),
+    asideInert: document.getElementById('site-aside')?.hasAttribute('inert')
+  }));
+  expect(released.headerInert).toBe(false);
+  expect(released.headerHidden).toBeNull();
+  expect(released.asideInert).toBe(false);
+
+  await popup.close();
+  await page.close();
 });

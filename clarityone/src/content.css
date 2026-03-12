@@ -170,7 +170,7 @@ html.clarityone-enabled .clarityone-reading-target {
   border-radius: 10px !important;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
 }
-html.clarityone-enabled.clarityone-reading-mode body > *:not(.clarityone-reading-target):not(#clarityone-skip-link) {
+.clarityone-reading-muted {
   opacity: 0.14 !important;
   pointer-events: none !important;
   user-select: none !important;

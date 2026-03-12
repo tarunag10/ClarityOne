@@ -1,4 +1,8 @@
 const els = {
+  accessibilityTab: document.getElementById('accessibilityTab'),
+  auditTab: document.getElementById('auditTab'),
+  accessibilityPanel: document.getElementById('accessibilityPanel'),
+  auditPanel: document.getElementById('auditPanel'),
   enabled: document.getElementById('enabled'),
   contrastMode: document.getElementById('contrastMode'),
   colorBlindMode: document.getElementById('colorBlindMode'),
@@ -42,6 +46,7 @@ let presets = [];
 let selectedPresetId = '';
 let rules = [];
 let lastScanReport = null;
+const TAB_IDS = ['accessibility', 'audit'];
 
 const SETTINGS_KEYS = [
   'enabled',
@@ -57,6 +62,47 @@ const SETTINGS_KEYS = [
   'enhancedFocus',
   'readingMode'
 ];
+
+function selectTab(tabId, moveFocus = false) {
+  const isAudit = tabId === 'audit';
+  els.accessibilityTab.setAttribute('aria-selected', String(!isAudit));
+  els.auditTab.setAttribute('aria-selected', String(isAudit));
+  els.accessibilityTab.tabIndex = isAudit ? -1 : 0;
+  els.auditTab.tabIndex = isAudit ? 0 : -1;
+  els.accessibilityPanel.hidden = isAudit;
+  els.auditPanel.hidden = !isAudit;
+  if (moveFocus) {
+    (isAudit ? els.auditTab : els.accessibilityTab).focus();
+  }
+}
+
+function moveTabFocus(currentId, direction) {
+  const currentIndex = TAB_IDS.indexOf(currentId);
+  const nextIndex = (currentIndex + direction + TAB_IDS.length) % TAB_IDS.length;
+  selectTab(TAB_IDS[nextIndex], true);
+}
+
+function handleTabKeydown(currentId, event) {
+  if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    moveTabFocus(currentId, 1);
+    return;
+  }
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    moveTabFocus(currentId, -1);
+    return;
+  }
+  if (event.key === 'Home') {
+    event.preventDefault();
+    selectTab('accessibility', true);
+    return;
+  }
+  if (event.key === 'End') {
+    event.preventDefault();
+    selectTab('audit', true);
+  }
+}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -476,7 +522,24 @@ els.exportCsvButton.addEventListener('click', () => {
   exportReportCsv();
 });
 
+els.accessibilityTab.addEventListener('click', () => {
+  selectTab('accessibility');
+});
+
+els.auditTab.addEventListener('click', () => {
+  selectTab('audit');
+});
+
+els.accessibilityTab.addEventListener('keydown', (event) => {
+  handleTabKeydown('accessibility', event);
+});
+
+els.auditTab.addEventListener('keydown', (event) => {
+  handleTabKeydown('audit', event);
+});
+
 loadPresets();
 loadRules();
+selectTab('accessibility');
 els.exportJsonButton.disabled = true;
 els.exportCsvButton.disabled = true;
