@@ -3,7 +3,7 @@ set -euo pipefail
 
 DIST_DIR="dist"
 SRC_DIR="clarityone/src"
-ICON_SRC_DIR="clarityone/icons"
+ICON_SRC_DIR="clarityone/src/icons"
 
 TARGET="${1:-all}"
 
