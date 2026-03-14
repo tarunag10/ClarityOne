@@ -94,57 +94,6 @@ select:focus {
   background: #fafafa;
 }
 
-.presets-section {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-  background: #fafafa;
-}
-
-.rules-section {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-  background: #fafafa;
-}
-
-.rules-list {
-  display: grid;
-  gap: 8px;
-  max-height: 180px;
-  overflow: auto;
-}
-
-.rule-item {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px;
-  background: #fff;
-  display: grid;
-  gap: 6px;
-}
-
-.rule-item p {
-  margin: 0;
-  font-size: 0.78rem;
-  color: #444;
-}
-
-.rule-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.preset-actions {
-  gap: 8px;
-}
-
-.preset-actions button {
-  flex: 1;
-}
-
 .audit-actions {
   gap: 8px;
 }

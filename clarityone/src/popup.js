@@ -20,14 +20,6 @@ const els = {
   dyslexiaFont: document.getElementById('dyslexiaFont'),
   enhancedFocus: document.getElementById('enhancedFocus'),
   readingMode: document.getElementById('readingMode'),
-  presetSelect: document.getElementById('presetSelect'),
-  applyPresetButton: document.getElementById('applyPresetButton'),
-  savePresetButton: document.getElementById('savePresetButton'),
-  deletePresetButton: document.getElementById('deletePresetButton'),
-  rulePatternInput: document.getElementById('rulePatternInput'),
-  rulePresetSelect: document.getElementById('rulePresetSelect'),
-  addRuleButton: document.getElementById('addRuleButton'),
-  rulesList: document.getElementById('rulesList'),
   scanButton: document.getElementById('scanButton'),
   exportJsonButton: document.getElementById('exportJsonButton'),
   exportCsvButton: document.getElementById('exportCsvButton'),
@@ -42,9 +34,6 @@ const els = {
 let currentHostname = null;
 let globalSettings = null;
 let siteOverrideActive = false;
-let presets = [];
-let selectedPresetId = '';
-let rules = [];
 let lastScanReport = null;
 const TAB_IDS = ['accessibility', 'audit'];
 
@@ -183,151 +172,6 @@ function exportReportCsv() {
   downloadTextFile('clarityone-audit-report.csv', csv, 'text/csv');
 }
 
-function renderPresetOptions() {
-  els.presetSelect.innerHTML = '';
-  if (presets.length === 0) {
-    els.presetSelect.innerHTML = '<option value="">No presets</option>';
-    els.deletePresetButton.disabled = true;
-    return;
-  }
-  for (const preset of presets) {
-    const option = document.createElement('option');
-    option.value = preset.id;
-    option.textContent = preset.builtIn ? `${preset.name} (built-in)` : preset.name;
-    els.presetSelect.appendChild(option);
-  }
-  if (!selectedPresetId || !presets.some((preset) => preset.id === selectedPresetId)) {
-    selectedPresetId = presets[0].id;
-  }
-  els.presetSelect.value = selectedPresetId;
-  const selected = presets.find((preset) => preset.id === selectedPresetId);
-  els.deletePresetButton.disabled = !selected || Boolean(selected.builtIn);
-}
-
-function renderRulePresetOptions() {
-  els.rulePresetSelect.innerHTML = '';
-  for (const preset of presets) {
-    const option = document.createElement('option');
-    option.value = preset.id;
-    option.textContent = preset.name;
-    els.rulePresetSelect.appendChild(option);
-  }
-}
-
-function renderRules() {
-  if (rules.length === 0) {
-    els.rulesList.innerHTML = '<p class="scan-summary">No auto-apply rules yet.</p>';
-    return;
-  }
-  const presetNames = new Map(presets.map((preset) => [preset.id, preset.name]));
-  els.rulesList.innerHTML = rules.map((rule) => `
-    <article class="rule-item">
-      <div class="rule-row">
-        <strong>${escapeHtml(rule.pattern)}</strong>
-        <label class="row">
-          <span>Enabled</span>
-          <input type="checkbox" data-rule-toggle="${escapeHtml(rule.id)}" ${rule.enabled ? 'checked' : ''} />
-        </label>
-      </div>
-      <p>Preset: ${escapeHtml(presetNames.get(rule.presetId) || 'Unknown preset')}</p>
-      <button type="button" data-rule-delete="${escapeHtml(rule.id)}">Delete rule</button>
-    </article>
-  `).join('');
-}
-
-function loadPresets() {
-  chrome.runtime.sendMessage({ type: 'GET_PRESETS' }, (response) => {
-    presets = Array.isArray(response?.presets) ? response.presets : [];
-    renderPresetOptions();
-    renderRulePresetOptions();
-    renderRules();
-  });
-}
-
-function loadRules() {
-  chrome.runtime.sendMessage({ type: 'GET_RULES' }, (response) => {
-    rules = Array.isArray(response?.rules) ? response.rules : [];
-    renderRules();
-  });
-}
-
-function normalizePresetSettings(settings) {
-  const next = {};
-  for (const key of SETTINGS_KEYS) {
-    next[key] = settings[key];
-  }
-  return next;
-}
-
-function applySelectedPreset() {
-  const selected = presets.find((preset) => preset.id === selectedPresetId);
-  if (!selected || !selected.settings) return;
-  const merged = { ...collectSettings(), ...normalizePresetSettings(selected.settings) };
-  render(merged);
-  save(merged);
-}
-
-function saveCurrentAsPreset() {
-  const name = window.prompt('Preset name');
-  if (!name) return;
-  const trimmed = name.trim();
-  if (!trimmed) return;
-  const preset = {
-    id: `preset-${Date.now()}`,
-    name: trimmed,
-    builtIn: false,
-    settings: normalizePresetSettings(collectSettings())
-  };
-  chrome.runtime.sendMessage({ type: 'SAVE_PRESET', preset }, (response) => {
-    presets = Array.isArray(response?.presets) ? response.presets : presets;
-    selectedPresetId = preset.id;
-    renderPresetOptions();
-  });
-}
-
-function deleteSelectedPreset() {
-  const selected = presets.find((preset) => preset.id === selectedPresetId);
-  if (!selected || selected.builtIn) return;
-  chrome.runtime.sendMessage({ type: 'DELETE_PRESET', id: selected.id }, (response) => {
-    presets = Array.isArray(response?.presets) ? response.presets : presets;
-    selectedPresetId = presets[0]?.id || '';
-    renderPresetOptions();
-    renderRulePresetOptions();
-    renderRules();
-  });
-}
-
-function addRule() {
-  const pattern = els.rulePatternInput.value.trim().toLowerCase();
-  const presetId = els.rulePresetSelect.value;
-  if (!pattern || !presetId) return;
-  const rule = {
-    id: `rule-${Date.now()}`,
-    pattern,
-    presetId,
-    enabled: true
-  };
-  chrome.runtime.sendMessage({ type: 'ADD_RULE', rule }, (response) => {
-    rules = Array.isArray(response?.rules) ? response.rules : rules;
-    els.rulePatternInput.value = '';
-    renderRules();
-  });
-}
-
-function toggleRule(id, enabled) {
-  chrome.runtime.sendMessage({ type: 'TOGGLE_RULE', id, enabled }, (response) => {
-    rules = Array.isArray(response?.rules) ? response.rules : rules;
-    renderRules();
-  });
-}
-
-function deleteRule(id) {
-  chrome.runtime.sendMessage({ type: 'DELETE_RULE', id }, (response) => {
-    rules = Array.isArray(response?.rules) ? response.rules : rules;
-    renderRules();
-  });
-}
-
 function render(settings) {
   els.enabled.checked = settings.enabled;
   els.contrastMode.value = settings.contrastMode;
@@ -444,40 +288,6 @@ els.siteOverride.addEventListener('change', () => {
   });
 });
 
-els.presetSelect.addEventListener('change', () => {
-  selectedPresetId = els.presetSelect.value;
-  const selected = presets.find((preset) => preset.id === selectedPresetId);
-  els.deletePresetButton.disabled = !selected || Boolean(selected.builtIn);
-});
-
-els.applyPresetButton.addEventListener('click', () => {
-  applySelectedPreset();
-});
-
-els.savePresetButton.addEventListener('click', () => {
-  saveCurrentAsPreset();
-});
-
-els.deletePresetButton.addEventListener('click', () => {
-  deleteSelectedPreset();
-});
-
-els.addRuleButton.addEventListener('click', () => {
-  addRule();
-});
-
-els.rulesList.addEventListener('change', (event) => {
-  const input = event.target.closest('input[data-rule-toggle]');
-  if (!input) return;
-  toggleRule(input.getAttribute('data-rule-toggle'), input.checked);
-});
-
-els.rulesList.addEventListener('click', (event) => {
-  const button = event.target.closest('button[data-rule-delete]');
-  if (!button) return;
-  deleteRule(button.getAttribute('data-rule-delete'));
-});
-
 els.resetButton.addEventListener('click', () => {
   chrome.runtime.sendMessage({ type: 'RESET_SETTINGS' }, (response) => {
     if (response?.settings) {
@@ -538,8 +348,6 @@ els.auditTab.addEventListener('keydown', (event) => {
   handleTabKeydown('audit', event);
 });
 
-loadPresets();
-loadRules();
 selectTab('accessibility');
 els.exportJsonButton.disabled = true;
 els.exportCsvButton.disabled = true;
