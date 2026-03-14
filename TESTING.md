@@ -12,6 +12,12 @@
 - [ ] Load unpacked extension from `clarityone/src/` in `chrome://extensions`
 - [ ] Verify all 3 icons appear (16, 48, 128)
 
+## Safari Setup (Local)
+- [ ] Run `npm run safari:convert` to generate Safari Xcode project
+- [ ] Open `dist/safari/xcode` project in Xcode and run once
+- [ ] In Safari settings, enable the ClarityOne extension
+- [ ] Grant extension access to all websites for parity with Chrome tests
+
 ## Font Scaling (C1)
 - [ ] Enable extension, set font scale to 1.5x
 - [ ] Open a page with deeply nested elements (e.g. `<div><div><p><span>text</span></p></div></div>`)
