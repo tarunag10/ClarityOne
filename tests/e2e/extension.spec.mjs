@@ -19,6 +19,19 @@ async function openPopup() {
   return popup;
 }
 
+async function enableExtensionForPage(popup, page) {
+  await popup.locator('#enabled').check();
+  await expect(page.locator('html')).toHaveClass(/clarityone-enabled/);
+}
+
+async function expectCssVariable(page, name, expected) {
+  await expect.poll(async () =>
+    page.evaluate((property) =>
+      getComputedStyle(document.documentElement).getPropertyValue(property).trim(),
+    name)
+  ).toBe(expected);
+}
+
 test.beforeAll(async () => {
   userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pw-ext-'));
   context = await chromium.launchPersistentContext(userDataDir, {
@@ -87,17 +100,13 @@ test('toggle enable/disable', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
-  await page.waitForTimeout(500);
+  await enableExtensionForPage(popup, page);
   await expect(page.locator('html')).toHaveClass(/clarityone-enabled/);
 
   await popup.locator('#enabled').uncheck();
-  await page.waitForTimeout(500);
-  const cls = (await page.locator('html').getAttribute('class')) || '';
-  expect(cls).not.toContain('clarityone-enabled');
+  await expect(page.locator('html')).not.toHaveClass(/clarityone-enabled/);
 
   await popup.close();
   await page.close();
@@ -107,15 +116,12 @@ test('contrast modes apply correct classes', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
-  await page.waitForTimeout(300);
+  await enableExtensionForPage(popup, page);
 
   for (const mode of ['light', 'dark', 'yellow', 'invert']) {
     await popup.locator('#contrastMode').selectOption(mode);
-    await page.waitForTimeout(500);
     await expect(page.locator('html')).toHaveClass(
       new RegExp(`clarityone-contrast-${mode}`)
     );
@@ -129,18 +135,13 @@ test('font scale slider changes CSS variable', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
+  await enableExtensionForPage(popup, page);
   await popup.locator('#fontScale').fill('1.5');
   await popup.locator('#fontScale').dispatchEvent('input');
-  await page.waitForTimeout(500);
 
-  const val = await page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue('--clarityone-font-scale').trim()
-  );
-  expect(val).toBe('1.5');
+  await expectCssVariable(page, '--clarityone-font-scale', '1.5');
 
   await popup.close();
   await page.close();
@@ -150,18 +151,13 @@ test('line height slider changes CSS variable', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
+  await enableExtensionForPage(popup, page);
   await popup.locator('#lineHeight').fill('2');
   await popup.locator('#lineHeight').dispatchEvent('input');
-  await page.waitForTimeout(500);
 
-  const val = await page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue('--clarityone-line-height').trim()
-  );
-  expect(val).toBe('2');
+  await expectCssVariable(page, '--clarityone-line-height', '2');
 
   await popup.close();
   await page.close();
@@ -171,17 +167,16 @@ test('readable font toggle works', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
+  await enableExtensionForPage(popup, page);
   await popup.locator('#readableFont').check();
-  await page.waitForTimeout(500);
 
-  const val = await page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue('--clarityone-font-family').trim()
-  );
-  expect(val).toContain('Arial');
+  await expect.poll(async () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--clarityone-font-family').trim()
+    )
+  ).toContain('Arial');
 
   await popup.close();
   await page.close();
@@ -191,17 +186,16 @@ test('enhanced focus toggle works', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
+  await enableExtensionForPage(popup, page);
   await popup.locator('#enhancedFocus').check();
-  await page.waitForTimeout(500);
 
-  const val = await page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue('--clarityone-focus-outline').trim()
-  );
-  expect(val).toContain('#ff9900');
+  await expect.poll(async () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--clarityone-focus-outline').trim()
+    )
+  ).toContain('#ff9900');
 
   await popup.close();
   await page.close();
@@ -212,10 +206,9 @@ test('reset button restores defaults', async () => {
 
   await popup.locator('#enabled').check();
   await popup.locator('#contrastMode').selectOption('dark');
-  await popup.waitForTimeout(300);
+  await expect(popup.locator('#contrastMode')).toHaveValue('dark');
 
   await popup.locator('#resetButton').click();
-  await popup.waitForTimeout(500);
 
   await expect(popup.locator('#enabled')).not.toBeChecked();
   await expect(popup.locator('#contrastMode')).toHaveValue('light');
@@ -231,17 +224,16 @@ test('settings persist after popup close/reopen', async () => {
   const popup1 = await openPopup();
   await popup1.locator('#enabled').check();
   await popup1.locator('#contrastMode').selectOption('dark');
-  await popup1.waitForTimeout(500);
+  await expect(popup1.locator('#contrastMode')).toHaveValue('dark');
   await popup1.close();
 
   const popup2 = await openPopup();
-  await popup2.waitForTimeout(500);
 
   await expect(popup2.locator('#enabled')).toBeChecked();
   await expect(popup2.locator('#contrastMode')).toHaveValue('dark');
 
   await popup2.locator('#resetButton').click();
-  await popup2.waitForTimeout(300);
+  await expect(popup2.locator('#contrastMode')).toHaveValue('light');
   await popup2.close();
 });
 
@@ -253,12 +245,11 @@ test('reading mode isolates non-reading regions from keyboard and screen readers
     <aside id="site-aside"><button type="button">Aside action</button></aside>
   `);
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
+  await enableExtensionForPage(popup, page);
   await popup.locator('#readingMode').check();
-  await page.waitForTimeout(500);
+  await expect(page.locator('html')).toHaveClass(/clarityone-reading-mode/);
 
   const isolated = await page.evaluate(() => ({
     headerInert: document.getElementById('site-header')?.hasAttribute('inert'),
@@ -274,7 +265,7 @@ test('reading mode isolates non-reading regions from keyboard and screen readers
   expect(isolated.htmlReadingMode).toBe(true);
 
   await popup.locator('#readingMode').uncheck();
-  await page.waitForTimeout(500);
+  await expect(page.locator('html')).not.toHaveClass(/clarityone-reading-mode/);
 
   const released = await page.evaluate(() => ({
     headerInert: document.getElementById('site-header')?.hasAttribute('inert'),

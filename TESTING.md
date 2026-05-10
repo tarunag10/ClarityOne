@@ -7,12 +7,15 @@
 - `SKIP_E2E=1 npm run test:all` skips e2e explicitly.
 - `REQUIRE_E2E=1 npm run test:all` fails if e2e cannot run in the current environment.
 - `npm run test:ci` runs `build` + unit tests only (safe for headless CI).
+- `npm run release:validate` unzips built release packages and checks required extension files/icons plus macOS metadata leaks.
+- `npm run safari:preflight` checks local Safari conversion tooling and reports remaining Xcode signing/manual steps.
 
 ## Setup
 - [ ] Load unpacked extension from `clarityone/src/` in `chrome://extensions`
 - [ ] Verify all 3 icons appear (16, 48, 128)
 
 ## Safari Setup (Local)
+- [ ] Run `npm run safari:preflight` and resolve any missing Xcode/Safari converter tooling
 - [ ] Run `npm run safari:convert` to generate Safari Xcode project
 - [ ] Open `dist/safari/xcode` project in Xcode and run once
 - [ ] In Safari settings, enable the ClarityOne extension

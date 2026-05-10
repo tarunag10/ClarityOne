@@ -10,14 +10,19 @@
     "build:safari": "bash scripts/build.sh safari",
     "build:chrome-tester": "bash scripts/package-chrome-tester.sh",
     "build:test-release": "bash scripts/release-test-build.sh",
+    "release:validate": "bash scripts/validate-release-package.sh",
     "safari:convert": "bash scripts/safari-convert.sh",
+    "safari:preflight": "bash scripts/safari-convert.sh --preflight",
     "test": "node tests/background.test.mjs",
     "test:e2e": "npx playwright test",
     "test:all": "bash scripts/test-all.sh",
-    "test:ci": "npm run build && npm test"
+    "test:ci": "npm run build && npm test && npm run release:validate",
+    "capture:social": "node scripts/capture-from-config.js --config capture-config.json",
+    "capture:site": "node scripts/capture-from-config.js --config capture-config.json",
+    "capture:install": "npx playwright install chromium"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.0",
-    "@axe-core/playwright": "^4.10.0"
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.50.0"
   }
 }

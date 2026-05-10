@@ -14,6 +14,10 @@ mkdir -p "$RELEASE_DIR"
 bash scripts/package-chrome-tester.sh
 bash scripts/safari-convert.sh
 
+bash scripts/validate-release-package.sh \
+  dist/clarityone-chrome-tester.zip \
+  dist/clarityone-safari.zip
+
 cp dist/clarityone-chrome-tester.zip "$RELEASE_DIR/"
 cp dist/clarityone-safari.zip "$RELEASE_DIR/"
 
@@ -21,6 +25,10 @@ cp dist/clarityone-safari.zip "$RELEASE_DIR/"
   cd dist/safari
   zip -qr "../../$RELEASE_DIR/safari-xcode-project.zip" xcode
 )
+
+bash scripts/validate-release-package.sh \
+  "$RELEASE_DIR/clarityone-chrome-tester.zip" \
+  "$RELEASE_DIR/clarityone-safari.zip"
 
 cat > "$RELEASE_DIR/RELEASE-NOTES.txt" <<EOF
 ClarityOne Test Release

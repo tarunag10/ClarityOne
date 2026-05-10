@@ -209,3 +209,40 @@ html.clarityone-enabled svg {
   outline-offset: 2px !important;
   box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.25) !important;
 }
+
+html.clarityone-reading-picker-active,
+html.clarityone-reading-picker-active body {
+  cursor: crosshair !important;
+}
+
+.clarityone-reading-picker-highlight {
+  outline: 4px solid #005fcc !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 8px rgba(0, 95, 204, 0.24) !important;
+  position: relative !important;
+}
+
+.clarityone-reading-picker-highlight::before {
+  content: attr(data-clarityone-picker-label);
+  position: fixed !important;
+  left: 16px !important;
+  bottom: 16px !important;
+  z-index: 2147483647 !important;
+  max-width: min(420px, calc(100vw - 32px)) !important;
+  padding: 10px 12px !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 6px !important;
+  background: #005fcc !important;
+  color: #ffffff !important;
+  font: 700 14px/1.35 Arial, Helvetica, sans-serif !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32) !important;
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clarityone-reading-picker-highlight {
+    scroll-behavior: auto !important;
+  }
+}

@@ -8,107 +8,200 @@
   </head>
   <body>
     <main class="popup" role="main" aria-label="ClarityOne accessibility settings">
-      <h1>ClarityOne</h1>
+      <header class="popup-header">
+        <div>
+          <p class="eyebrow">Local accessibility controls</p>
+          <h1>ClarityOne</h1>
+        </div>
+        <button id="readingPickerButton" class="icon-button" type="button" aria-label="Pick a reading target on this page">Pick text</button>
+      </header>
+
+      <section id="onboardingSection" class="onboarding" aria-label="First run guide" hidden>
+        <div>
+          <h2>Quick start</h2>
+          <p>Changes run locally in this browser. Use the shortcut to toggle ClarityOne, and allow page access only where you want overlays and audits.</p>
+        </div>
+        <button id="dismissOnboardingButton" type="button" aria-label="Dismiss quick start">Got it</button>
+      </section>
+
       <div class="tablist" role="tablist" aria-orientation="horizontal" aria-label="Popup sections">
         <button id="accessibilityTab" class="tab-button" type="button" role="tab" aria-selected="true" aria-controls="accessibilityPanel">Accessibility</button>
         <button id="auditTab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="auditPanel" tabindex="-1">Website audit</button>
       </div>
 
       <section id="accessibilityPanel" class="tab-panel" role="tabpanel" aria-labelledby="accessibilityTab">
-        <div class="row site-override-row" id="siteOverrideRow" hidden>
-          <label class="row" for="siteOverride">
-            <span>Custom settings for <strong id="hostnameLabel"></strong></span>
+        <section class="panel-section stack" aria-label="Current site profile">
+          <div class="section-heading">
+            <h2>Site profile</h2>
+            <span id="profileBadge" class="badge neutral">Global</span>
+          </div>
+          <p id="profileStatus" class="muted" aria-live="polite">Using global settings.</p>
+          <div class="row site-override-row" id="siteOverrideRow" hidden>
+            <label class="row compact-label" for="siteOverride">
+              <span>Custom settings for <strong id="hostnameLabel"></strong></span>
+            </label>
+            <input id="siteOverride" type="checkbox" aria-label="Enable custom settings for this site" />
+          </div>
+          <button id="removeSiteOverrideButton" class="secondary" type="button" aria-label="Remove custom settings for this site" disabled>Remove site override</button>
+        </section>
+
+        <section class="panel-section stack" aria-label="Presets">
+          <div class="section-heading">
+            <h2>Presets</h2>
+            <span id="presetCountBadge" class="badge">0</span>
+          </div>
+          <div id="presetList" class="preset-grid" aria-live="polite"></div>
+        </section>
+
+        <section class="panel-section stack" aria-label="Auto apply rules">
+          <div class="section-heading">
+            <h2>Auto rules</h2>
+            <span id="ruleCountBadge" class="badge">0</span>
+          </div>
+          <div class="rule-form">
+            <label class="stack">
+              <span>Site pattern</span>
+              <input id="rulePattern" type="text" inputmode="url" autocomplete="off" placeholder="example.com or *.example.com" aria-label="Site pattern for auto apply rule" />
+            </label>
+            <label class="stack">
+              <span>Preset</span>
+              <select id="rulePreset" aria-label="Preset for auto apply rule"></select>
+            </label>
+            <button id="addRuleButton" type="button" aria-label="Add auto apply rule">Add rule</button>
+          </div>
+          <div id="ruleList" class="rule-list" aria-live="polite"></div>
+        </section>
+
+        <section class="panel-section stack" aria-label="Settings import and export">
+          <div class="section-heading">
+            <h2>Settings</h2>
+          </div>
+          <div class="button-row">
+            <button id="exportSettingsButton" type="button" aria-label="Export ClarityOne settings JSON">Export settings</button>
+            <button id="importSettingsButton" type="button" aria-label="Import ClarityOne settings JSON">Import settings</button>
+          </div>
+          <input id="importSettingsInput" class="visually-hidden" type="file" accept="application/json,.json" aria-label="Choose ClarityOne settings JSON" />
+          <p id="settingsStatus" class="muted" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel-section stack" aria-label="Reading and display controls">
+          <label class="row toggle-row">
+            <span>Enable accessibility mode</span>
+            <input id="enabled" type="checkbox" aria-label="Enable accessibility mode" />
           </label>
-          <input id="siteOverride" type="checkbox" aria-label="Enable custom settings for this site" />
-        </div>
 
-        <label class="row toggle-row">
-          <span>Enable accessibility mode</span>
-          <input id="enabled" type="checkbox" aria-label="Enable accessibility mode" />
-        </label>
+          <label class="stack">
+            <span>Contrast mode</span>
+            <select id="contrastMode" aria-label="Contrast mode">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="yellow">Yellow on black</option>
+              <option value="invert">Invert</option>
+            </select>
+          </label>
 
-        <label class="stack">
-          <span>Contrast mode</span>
-          <select id="contrastMode" aria-label="Contrast mode">
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="yellow">Yellow on black</option>
-            <option value="invert">Invert</option>
-          </select>
-        </label>
+          <label class="stack">
+            <span>Color-blind assist</span>
+            <select id="colorBlindMode" aria-label="Color-blind assist mode">
+              <option value="none">None</option>
+              <option value="deuteranopia">Deuteranopia assist</option>
+              <option value="protanopia">Protanopia assist</option>
+              <option value="tritanopia">Tritanopia assist</option>
+            </select>
+          </label>
 
-        <label class="stack">
-          <span>Color-blind assist</span>
-          <select id="colorBlindMode" aria-label="Color-blind assist mode">
-            <option value="none">None</option>
-            <option value="deuteranopia">Deuteranopia assist</option>
-            <option value="protanopia">Protanopia assist</option>
-            <option value="tritanopia">Tritanopia assist</option>
-          </select>
-        </label>
+          <label class="stack">
+            <span>Font scale</span>
+            <input id="fontScale" type="range" min="1" max="2" step="0.1" aria-label="Font scale" aria-valuemin="1" aria-valuemax="2" aria-valuenow="1.2" />
+            <output id="fontScaleValue" aria-live="polite">1.2x</output>
+          </label>
 
-        <label class="stack">
-          <span>Font scale</span>
-          <input id="fontScale" type="range" min="1" max="2" step="0.1" aria-label="Font scale" aria-valuemin="1" aria-valuemax="2" aria-valuenow="1.2" />
-          <output id="fontScaleValue" aria-live="polite">1.2x</output>
-        </label>
+          <label class="stack">
+            <span>Line height</span>
+            <input id="lineHeight" type="range" min="1" max="3" step="0.1" aria-label="Line height" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.7" />
+            <output id="lineHeightValue" aria-live="polite">1.7</output>
+          </label>
 
-        <label class="stack">
-          <span>Line height</span>
-          <input id="lineHeight" type="range" min="1" max="3" step="0.1" aria-label="Line height" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1.7" />
-          <output id="lineHeightValue" aria-live="polite">1.7</output>
-        </label>
+          <label class="stack">
+            <span>Letter spacing</span>
+            <input id="letterSpacing" type="range" min="0" max="0.2" step="0.01" aria-label="Letter spacing" aria-valuemin="0" aria-valuemax="0.2" aria-valuenow="0.02" />
+            <output id="letterSpacingValue" aria-live="polite">0.02em</output>
+          </label>
 
-        <label class="stack">
-          <span>Letter spacing</span>
-          <input id="letterSpacing" type="range" min="0" max="0.2" step="0.01" aria-label="Letter spacing" aria-valuemin="0" aria-valuemax="0.2" aria-valuenow="0.02" />
-          <output id="letterSpacingValue" aria-live="polite">0.02em</output>
-        </label>
+          <label class="stack">
+            <span>Word spacing</span>
+            <input id="wordSpacing" type="range" min="0" max="0.4" step="0.01" aria-label="Word spacing" aria-valuemin="0" aria-valuemax="0.4" aria-valuenow="0.05" />
+            <output id="wordSpacingValue" aria-live="polite">0.05em</output>
+          </label>
 
-        <label class="stack">
-          <span>Word spacing</span>
-          <input id="wordSpacing" type="range" min="0" max="0.4" step="0.01" aria-label="Word spacing" aria-valuemin="0" aria-valuemax="0.4" aria-valuenow="0.05" />
-          <output id="wordSpacingValue" aria-live="polite">0.05em</output>
-        </label>
+          <label class="stack">
+            <span>Paragraph spacing</span>
+            <input id="paragraphSpacing" type="range" min="0.8" max="2.4" step="0.1" aria-label="Paragraph spacing" aria-valuemin="0.8" aria-valuemax="2.4" aria-valuenow="1.2" />
+            <output id="paragraphSpacingValue" aria-live="polite">1.2em</output>
+          </label>
 
-        <label class="stack">
-          <span>Paragraph spacing</span>
-          <input id="paragraphSpacing" type="range" min="0.8" max="2.4" step="0.1" aria-label="Paragraph spacing" aria-valuemin="0.8" aria-valuemax="2.4" aria-valuenow="1.2" />
-          <output id="paragraphSpacingValue" aria-live="polite">1.2em</output>
-        </label>
+          <label class="row toggle-row">
+            <span>Readable font</span>
+            <input id="readableFont" type="checkbox" aria-label="Readable font" />
+          </label>
 
-        <label class="row toggle-row">
-          <span>Readable font</span>
-          <input id="readableFont" type="checkbox" aria-label="Readable font" />
-        </label>
+          <label class="row toggle-row">
+            <span>Dyslexia-friendly font</span>
+            <input id="dyslexiaFont" type="checkbox" aria-label="Dyslexia-friendly font" />
+          </label>
 
-        <label class="row toggle-row">
-          <span>Dyslexia-friendly font</span>
-          <input id="dyslexiaFont" type="checkbox" aria-label="Dyslexia-friendly font" />
-        </label>
+          <label class="row toggle-row">
+            <span>Enhanced focus</span>
+            <input id="enhancedFocus" type="checkbox" aria-label="Enhanced focus" />
+          </label>
 
-        <label class="row toggle-row">
-          <span>Enhanced focus</span>
-          <input id="enhancedFocus" type="checkbox" aria-label="Enhanced focus" />
-        </label>
+          <label class="row toggle-row">
+            <span>Reading mode</span>
+            <input id="readingMode" type="checkbox" aria-label="Reading mode" />
+          </label>
 
-        <label class="row toggle-row">
-          <span>Reading mode</span>
-          <input id="readingMode" type="checkbox" aria-label="Reading mode" />
-        </label>
-
-        <button id="resetButton" type="button" aria-label="Reset all settings to defaults">Reset to defaults</button>
+          <button id="resetButton" type="button" aria-label="Reset all settings to defaults">Reset to defaults</button>
+        </section>
       </section>
 
       <section id="auditPanel" class="tab-panel stack" role="tabpanel" aria-labelledby="auditTab" hidden>
-        <section class="stack audit-section" aria-label="Accessibility audit">
+        <section class="panel-section stack audit-section" aria-label="Accessibility audit">
           <div class="row audit-actions">
             <button id="scanButton" type="button" aria-label="Scan this page for accessibility issues">Scan this page</button>
             <button id="exportJsonButton" type="button" aria-label="Export audit report as JSON">Export JSON</button>
             <button id="exportCsvButton" type="button" aria-label="Export audit report as CSV">Export CSV</button>
           </div>
+          <button id="exportDeveloperReportButton" class="secondary" type="button" aria-label="Export developer audit report">Developer report</button>
+
+          <div class="filter-grid" aria-label="Audit result filters">
+            <label class="stack">
+              <span>Severity</span>
+              <select id="severityFilter" aria-label="Filter audit issues by severity">
+                <option value="all">All severities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </label>
+            <label class="stack">
+              <span>Type</span>
+              <select id="typeFilter" aria-label="Filter audit issues by type">
+                <option value="all">All types</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="auditBadges" class="badge-row" aria-label="Audit counts"></div>
           <p id="scanSummary" class="scan-summary" role="status" aria-live="polite"></p>
           <div id="scanResults" class="scan-results" aria-live="polite"></div>
+        </section>
+
+        <section class="panel-section stack" aria-label="Scan history">
+          <div class="section-heading">
+            <h2>History</h2>
+            <span id="historyCountBadge" class="badge">0</span>
+          </div>
+          <div id="scanHistory" class="scan-history" aria-live="polite"></div>
         </section>
       </section>
       <p class="credit" aria-label="Creator attribution">Created by Tarun Agarwal</p>

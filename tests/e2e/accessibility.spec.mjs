@@ -20,6 +20,11 @@ async function openPopup() {
   return popup;
 }
 
+async function enableExtensionForPage(popup, page) {
+  await popup.locator('#enabled').check();
+  await expect(page.locator('html')).toHaveClass(/clarityone-enabled/);
+}
+
 test.beforeAll(async () => {
   userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pw-ext-'));
   context = await chromium.launchPersistentContext(userDataDir, {
@@ -57,7 +62,6 @@ test('page with extension enabled introduces no axe violations', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   // Baseline
   const baseline = await new AxeBuilder({ page }).analyze();
@@ -65,8 +69,7 @@ test('page with extension enabled introduces no axe violations', async () => {
 
   // Enable extension
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
-  await page.waitForTimeout(500);
+  await enableExtensionForPage(popup, page);
   await popup.close();
 
   // Scan with extension
@@ -82,12 +85,10 @@ test('skip-to-content link is present and functional', async () => {
   const page = await context.newPage();
   await page.goto('https://example.com');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500);
 
   // Enable extension
   const popup = await openPopup();
-  await popup.locator('#enabled').check();
-  await page.waitForTimeout(500);
+  await enableExtensionForPage(popup, page);
   await popup.close();
 
   const skipLink = page.locator('#clarityone-skip-link');
